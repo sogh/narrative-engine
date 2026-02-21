@@ -1,0 +1,13 @@
+[neutral]
+The evening had settled into a comfortable rhythm. Candles flickered along the mantelpiece.
+Conversation drifted between topics without urgency. Someone laughed softly in the corner.
+The wine was excellent, as always. Plates clinked against silverware in the warm dining room.
+
+[tense]
+She set down her glass with deliberate care. The silence that followed was deafening.
+He had not expected this turn of events. Words hung in the air, sharp and unretractable.
+Every eye in the room turned toward the doorway. The temperature seemed to drop by degrees.
+
+[warm]
+They shared a knowing look across the table. Old friends need not speak to understand.
+The fire crackled and someone refilled the glasses. Laughter came easily tonight.

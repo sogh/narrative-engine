@@ -1,0 +1,36 @@
+[package]
+name = "narrative-engine"
+version = "0.1.0"
+edition = "2021"
+description = "A reusable library for procedural text generation in games"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+ron = "0.8"
+rand = "0.8"
+rustc-hash = "2"
+thiserror = "2"
+
+[dev-dependencies]
+# Test utilities if needed later
+
+[[bin]]
+name = "corpus_trainer"
+path = "tools/corpus_trainer.rs"
+
+[[bin]]
+name = "grammar_linter"
+path = "tools/grammar_linter.rs"
+
+[[bin]]
+name = "preview"
+path = "tools/preview.rs"
+
+[[example]]
+name = "dinner_party"
+path = "examples/dinner_party.rs"
+
+[[example]]
+name = "jurassic_park"
+path = "examples/jurassic_park.rs"
