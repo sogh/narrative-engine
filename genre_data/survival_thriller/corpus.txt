@@ -1,0 +1,47 @@
+[dread]
+The jungle had gone quiet. That was never a good sign.
+Something was moving through the underbrush, something large and deliberate.
+The fence was supposed to hold. It was designed to hold. It had not held.
+In the darkness, eyes reflected the emergency lights and then disappeared.
+The ground trembled with footsteps that should not have existed in this epoch.
+Every instinct said run. Training said hold position. Neither felt right.
+The air carried a scent that was older than memory, something primal and wrong.
+Night fell like a curtain, and with it came the sounds they had been dreading.
+The compound felt smaller in the dark, the walls thinner, the locks more fragile.
+Somewhere in the facility, metal groaned under a weight it was never meant to bear.
+What had been a controlled environment was now anything but controlled.
+
+[urgent]
+Move. Now. Don't stop. Don't look back.
+The breach alarm screamed through the corridors, red lights strobing in the fog.
+Two minutes to lockdown. They needed five.
+The vehicle wouldn't start. Fuel line compromised. They were running.
+Static burst from the radio followed by a single word: evacuate.
+Power grid failure in sectors three through seven. Backup failing.
+The extraction point was two kilometers through compromised territory.
+Every route was blocked. Every alternative was worse.
+Containment had failed. The only question now was how badly.
+They had seconds, not minutes. Act accordingly.
+
+[calm_before]
+The morning mist clung to the paddock fences, peaceful and unremarkable.
+Systems nominal. Coffee hot. Another routine day in paradise.
+The compound hummed with the quiet efficiency of a well-run operation.
+Sunlight filtered through the canopy, dappling the path with gold and green.
+The animals were feeding. The tourists were smiling. Everything was fine.
+A perfect day, the kind that makes you forget what you are keeping behind electric fences.
+The generators ran their cycle, a steady mechanical heartbeat beneath the birdsong.
+All indicators green. All containment protocols active. All personnel accounted for.
+The island was beautiful. That was the problem. Beauty breeds complacency.
+
+[technical]
+Fence voltage dropped below containment threshold at zero two forty-seven hours.
+Lysine contingency inactive. Breeding population confirmed in restricted sectors.
+Thermal signatures detected beyond perimeter grid, quadrant seven-alpha.
+Seismic monitors registered anomalous activity consistent with large-fauna locomotion.
+Automated feeding systems offline. Manual override required for paddocks nine through twelve.
+Backup power capacity at thirty-one percent. Estimated depletion in four point seven hours.
+Communications relay damaged. Long-range transmission capability compromised.
+Motion tracking shows coordinated movement patterns suggesting pack behavior.
+Structural analysis indicates east fence section weakened by corrosion and impact damage.
+Environmental controls failing. Temperature regulation offline in laboratory wing.
