@@ -26,4 +26,33 @@
             (weight: 1, text: "There was a flicker of something unreadable in {possessive} expression."),
         ],
     ),
+    "confrontation_opening": Rule(
+        requires: ["mood:tense"],
+        excludes: [],
+        alternatives: [
+            (weight: 3, text: "{subject} stepped forward. {action_detail} {tense_observation}"),
+            (weight: 2, text: "{tense_observation} {action_detail}"),
+        ],
+    ),
+    "calm_greeting": Rule(
+        requires: [],
+        excludes: ["mood:tense"],
+        alternatives: [
+            (weight: 1, text: "Everything seemed perfectly normal."),
+        ],
+    ),
+    "recursive_bomb": Rule(
+        requires: [],
+        excludes: [],
+        alternatives: [
+            (weight: 1, text: "{recursive_bomb} again"),
+        ],
+    ),
+    "markov_test": Rule(
+        requires: [],
+        excludes: [],
+        alternatives: [
+            (weight: 1, text: "She said {markov:dialogue:accusatory} quietly."),
+        ],
+    ),
 }

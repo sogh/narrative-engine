@@ -1,9 +1,17 @@
 /// Stochastic grammar runtime — types, parsing, loading, and expansion.
 
+use rand::distributions::WeightedIndex;
+use rand::prelude::Distribution;
+use rand::rngs::StdRng;
+use rustc_hash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 use thiserror::Error;
+
+use crate::schema::entity::{Entity, Value};
+
+const MAX_EXPANSION_DEPTH: u32 = 20;
 
 #[derive(Debug, Error)]
 pub enum GrammarError {
@@ -13,6 +21,46 @@ pub enum GrammarError {
     Io(#[from] std::io::Error),
     #[error("RON deserialization error: {0}")]
     Ron(#[from] ron::error::SpannedError),
+    #[error("rule not found: {0}")]
+    RuleNotFound(String),
+    #[error("max expansion depth ({0}) exceeded")]
+    MaxDepthExceeded(u32),
+    #[error("no matching alternatives for rule '{0}'")]
+    NoAlternatives(String),
+    #[error("entity binding not found for role: {0}")]
+    EntityBindingNotFound(String),
+    #[error("entity field not found: {0}")]
+    EntityFieldNotFound(String),
+}
+
+/// Accumulated state during grammar expansion.
+pub struct SelectionContext<'a> {
+    pub tags: FxHashSet<String>,
+    pub entity_bindings: HashMap<String, &'a Entity>,
+    pub depth: u32,
+    /// Optional voice grammar weight overrides (rule_name → multiplier).
+    pub voice_weights: Option<&'a HashMap<String, f32>>,
+}
+
+impl<'a> SelectionContext<'a> {
+    pub fn new() -> Self {
+        Self {
+            tags: FxHashSet::default(),
+            entity_bindings: HashMap::new(),
+            depth: 0,
+            voice_weights: None,
+        }
+    }
+
+    pub fn with_tags(mut self, tags: impl IntoIterator<Item = String>) -> Self {
+        self.tags.extend(tags);
+        self
+    }
+
+    pub fn with_entity(mut self, role: &str, entity: &'a Entity) -> Self {
+        self.entity_bindings.insert(role.to_string(), entity);
+        self
+    }
 }
 
 /// A segment of a parsed template.
@@ -250,11 +298,176 @@ impl GrammarSet {
             self.rules.insert(name, rule);
         }
     }
+
+    /// Find all rules whose `requires` tags are a subset of the context's
+    /// active tags, and whose `excludes` tags have no intersection.
+    pub fn find_matching_rules<'a, 'b>(
+        &'a self,
+        ctx: &SelectionContext<'b>,
+    ) -> Vec<&'a GrammarRule> {
+        self.rules
+            .values()
+            .filter(|rule| {
+                // All requires must be present in ctx tags
+                let requires_met = rule.requires.iter().all(|tag| ctx.tags.contains(tag));
+                // No excludes may be present in ctx tags
+                let excludes_clear = !rule.excludes.iter().any(|tag| ctx.tags.contains(tag));
+                requires_met && excludes_clear
+            })
+            .collect()
+    }
+
+    /// Expand a named rule into text using the given context and RNG.
+    pub fn expand(
+        &self,
+        rule_name: &str,
+        ctx: &mut SelectionContext<'_>,
+        rng: &mut StdRng,
+    ) -> Result<String, GrammarError> {
+        if ctx.depth >= MAX_EXPANSION_DEPTH {
+            return Err(GrammarError::MaxDepthExceeded(MAX_EXPANSION_DEPTH));
+        }
+
+        let rule = self
+            .rules
+            .get(rule_name)
+            .ok_or_else(|| GrammarError::RuleNotFound(rule_name.to_string()))?;
+
+        if rule.alternatives.is_empty() {
+            return Err(GrammarError::NoAlternatives(rule_name.to_string()));
+        }
+
+        // Propagate this rule's requires tags into context for child expansions
+        for tag in &rule.requires {
+            ctx.tags.insert(tag.clone());
+        }
+
+        // Select alternative by weighted random, with voice weight multipliers
+        let alt = select_alternative(&rule.alternatives, rule_name, ctx.voice_weights, rng)?;
+
+        // Expand template segments
+        ctx.depth += 1;
+        let mut output = String::new();
+
+        for segment in &alt.template.segments {
+            match segment {
+                TemplateSegment::Literal(text) => {
+                    output.push_str(text);
+                }
+                TemplateSegment::RuleRef(name) => {
+                    let expanded = self.expand(name, ctx, rng)?;
+                    output.push_str(&expanded);
+                }
+                TemplateSegment::MarkovRef { corpus, tag } => {
+                    // Placeholder until Markov system is implemented
+                    output.push_str(&format!("[markov:{}:{}]", corpus, tag));
+                }
+                TemplateSegment::EntityField { field } => {
+                    output.push_str(&resolve_entity_field(ctx, field)?);
+                }
+                TemplateSegment::PronounRef { role } => {
+                    output.push_str(&resolve_pronoun(ctx, role)?);
+                }
+            }
+        }
+
+        ctx.depth -= 1;
+        Ok(output)
+    }
+}
+
+/// Select a weighted alternative, optionally applying voice weight multipliers.
+fn select_alternative<'a>(
+    alts: &'a [Alternative],
+    rule_name: &str,
+    voice_weights: Option<&HashMap<String, f32>>,
+    rng: &mut StdRng,
+) -> Result<&'a Alternative, GrammarError> {
+    let weights: Vec<f64> = alts
+        .iter()
+        .map(|alt| {
+            let base = alt.weight as f64;
+            let multiplier = voice_weights
+                .and_then(|vw| vw.get(rule_name))
+                .copied()
+                .unwrap_or(1.0) as f64;
+            (base * multiplier).max(0.0)
+        })
+        .collect();
+
+    let dist = WeightedIndex::new(&weights)
+        .map_err(|_| GrammarError::NoAlternatives(rule_name.to_string()))?;
+    Ok(&alts[dist.sample(rng)])
+}
+
+/// Look up an entity field from context bindings.
+fn resolve_entity_field(ctx: &SelectionContext<'_>, field: &str) -> Result<String, GrammarError> {
+    // Try to find the field in any bound entity's properties, or check name
+    // First check the "subject" binding, then any binding
+    let entity = ctx
+        .entity_bindings
+        .get("subject")
+        .or_else(|| ctx.entity_bindings.values().next())
+        .ok_or_else(|| GrammarError::EntityBindingNotFound("subject".to_string()))?;
+
+    if field == "name" {
+        return Ok(entity.name.clone());
+    }
+
+    match entity.properties.get(field) {
+        Some(Value::String(s)) => Ok(s.clone()),
+        Some(Value::Float(f)) => Ok(format!("{}", f)),
+        Some(Value::Int(i)) => Ok(format!("{}", i)),
+        Some(Value::Bool(b)) => Ok(format!("{}", b)),
+        None => Err(GrammarError::EntityFieldNotFound(field.to_string())),
+    }
+}
+
+/// Resolve a pronoun reference to entity name (full pronoun resolution comes later).
+fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, GrammarError> {
+    // Map pronoun role to entity binding
+    let binding_key = match role {
+        "subject" => "subject",
+        "object" => "object",
+        "possessive" => "subject", // possessive uses subject's name for now
+        other => other,
+    };
+
+    let entity = ctx
+        .entity_bindings
+        .get(binding_key)
+        // Fall back to subject for object/possessive if not separately bound
+        .or_else(|| ctx.entity_bindings.get("subject"))
+        .ok_or_else(|| GrammarError::EntityBindingNotFound(role.to_string()))?;
+
+    match role {
+        "possessive" => Ok(format!("{}'s", entity.name)),
+        _ => Ok(entity.name.clone()),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::schema::entity::{Entity, EntityId, VoiceId};
+    use rand::SeedableRng;
+
+    fn make_test_entity(name: &str) -> Entity {
+        Entity {
+            id: EntityId(1),
+            name: name.to_string(),
+            tags: FxHashSet::default(),
+            relationships: Vec::new(),
+            voice_id: Some(VoiceId(1)),
+            properties: HashMap::from([
+                ("held_item".to_string(), Value::String("wine glass".to_string())),
+            ]),
+        }
+    }
+
+    fn load_test_grammar() -> GrammarSet {
+        GrammarSet::load_from_ron(std::path::Path::new("tests/fixtures/test_grammar.ron")).unwrap()
+    }
 
     #[test]
     fn parse_literal_only() {
@@ -366,12 +579,15 @@ mod tests {
 
     #[test]
     fn load_test_grammar_from_ron() {
-        let path = std::path::PathBuf::from("tests/fixtures/test_grammar.ron");
-        let gs = GrammarSet::load_from_ron(&path).unwrap();
-        assert_eq!(gs.rules.len(), 3);
+        let gs = load_test_grammar();
+        assert_eq!(gs.rules.len(), 7);
         assert!(gs.rules.contains_key("greeting"));
         assert!(gs.rules.contains_key("tense_observation"));
         assert!(gs.rules.contains_key("action_detail"));
+        assert!(gs.rules.contains_key("confrontation_opening"));
+        assert!(gs.rules.contains_key("calm_greeting"));
+        assert!(gs.rules.contains_key("recursive_bomb"));
+        assert!(gs.rules.contains_key("markov_test"));
 
         let greeting = &gs.rules["greeting"];
         assert_eq!(greeting.alternatives.len(), 3);
@@ -466,5 +682,174 @@ mod tests {
         let gs = GrammarSet::load_from_ron(&path).unwrap();
         let tense = &gs.rules["tense_observation"];
         assert_eq!(tense.requires, vec!["mood:tense".to_string()]);
+    }
+
+    // --- Expansion tests ---
+
+    #[test]
+    fn expand_literal_rule() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+        let mut ctx = SelectionContext::new()
+            .with_tags(["mood:tense".to_string()])
+            .with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs.expand("tense_observation", &mut ctx, &mut rng).unwrap();
+        assert!(!result.is_empty());
+        // All alternatives are pure literals
+        let valid = [
+            "The air felt heavy with unspoken words.",
+            "A silence settled over the room.",
+            "No one dared to speak first.",
+        ];
+        assert!(
+            valid.contains(&result.as_str()),
+            "Unexpected output: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn expand_three_levels_deep() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+        let mut ctx = SelectionContext::new()
+            .with_tags(["mood:tense".to_string()])
+            .with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        // confrontation_opening references action_detail and tense_observation
+        let result = gs.expand("confrontation_opening", &mut ctx, &mut rng).unwrap();
+        assert!(!result.is_empty());
+        // Should contain text from child rules
+        assert!(
+            result.len() > 20,
+            "Expected multi-rule expansion, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn deterministic_with_same_seed() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+
+        let mut ctx1 = SelectionContext::new()
+            .with_tags(["mood:tense".to_string()])
+            .with_entity("subject", &entity);
+        let mut rng1 = StdRng::seed_from_u64(99);
+        let result1 = gs.expand("confrontation_opening", &mut ctx1, &mut rng1).unwrap();
+
+        let mut ctx2 = SelectionContext::new()
+            .with_tags(["mood:tense".to_string()])
+            .with_entity("subject", &entity);
+        let mut rng2 = StdRng::seed_from_u64(99);
+        let result2 = gs.expand("confrontation_opening", &mut ctx2, &mut rng2).unwrap();
+
+        assert_eq!(result1, result2);
+    }
+
+    #[test]
+    fn different_seed_different_output() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+
+        let mut ctx1 = SelectionContext::new()
+            .with_tags(["mood:tense".to_string()])
+            .with_entity("subject", &entity);
+        let mut rng1 = StdRng::seed_from_u64(1);
+        let result1 = gs.expand("confrontation_opening", &mut ctx1, &mut rng1).unwrap();
+
+        let mut found_different = false;
+        for seed in 2..50 {
+            let mut ctx2 = SelectionContext::new()
+                .with_tags(["mood:tense".to_string()])
+                .with_entity("subject", &entity);
+            let mut rng2 = StdRng::seed_from_u64(seed);
+            let result2 = gs.expand("confrontation_opening", &mut ctx2, &mut rng2).unwrap();
+            if result1 != result2 {
+                found_different = true;
+                break;
+            }
+        }
+        assert!(found_different, "Expected different output with different seeds");
+    }
+
+    #[test]
+    fn max_depth_error() {
+        let gs = load_test_grammar();
+        let mut ctx = SelectionContext::new();
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs.expand("recursive_bomb", &mut ctx, &mut rng);
+        assert!(result.is_err());
+        assert!(
+            matches!(result, Err(GrammarError::MaxDepthExceeded(_))),
+            "Expected MaxDepthExceeded error"
+        );
+    }
+
+    #[test]
+    fn tag_propagation_affects_selection() {
+        let gs = load_test_grammar();
+
+        // Without mood:tense, calm_greeting should match but tense_observation should not
+        let ctx = SelectionContext::new();
+        let matching = gs.find_matching_rules(&ctx);
+        let names: Vec<&str> = matching.iter().map(|r| r.name.as_str()).collect();
+        assert!(names.contains(&"calm_greeting"), "calm_greeting should match without tense tag");
+        assert!(!names.contains(&"tense_observation"), "tense_observation should not match without tense tag");
+
+        // With mood:tense, tense_observation should match but calm_greeting should not
+        let ctx_tense = SelectionContext::new().with_tags(["mood:tense".to_string()]);
+        let matching_tense = gs.find_matching_rules(&ctx_tense);
+        let names_tense: Vec<&str> = matching_tense.iter().map(|r| r.name.as_str()).collect();
+        assert!(names_tense.contains(&"tense_observation"), "tense_observation should match with tense tag");
+        assert!(!names_tense.contains(&"calm_greeting"), "calm_greeting should be excluded by tense tag");
+    }
+
+    #[test]
+    fn entity_field_expansion() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+
+        // greeting rule uses {entity.name}
+        // Run multiple seeds to hit a variant with entity.name
+        let mut found_name = false;
+        for seed in 0..20 {
+            let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+            let mut rng = StdRng::seed_from_u64(seed);
+            let result = gs.expand("greeting", &mut ctx, &mut rng).unwrap();
+            if result.contains("Margaret") {
+                found_name = true;
+                break;
+            }
+        }
+        assert!(found_name, "Expected entity name expansion in at least one seed");
+    }
+
+    #[test]
+    fn markov_placeholder_expansion() {
+        let gs = load_test_grammar();
+        let mut ctx = SelectionContext::new();
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs.expand("markov_test", &mut ctx, &mut rng).unwrap();
+        assert!(
+            result.contains("[markov:dialogue:accusatory]"),
+            "Expected markov placeholder, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn rule_not_found_error() {
+        let gs = load_test_grammar();
+        let mut ctx = SelectionContext::new();
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs.expand("nonexistent_rule", &mut ctx, &mut rng);
+        assert!(matches!(result, Err(GrammarError::RuleNotFound(_))));
     }
 }
