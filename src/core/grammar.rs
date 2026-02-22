@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use thiserror::Error;
 
+use crate::core::markov::MarkovModel;
 use crate::schema::entity::{Entity, Value};
 
 const MAX_EXPANSION_DEPTH: u32 = 20;
@@ -31,6 +32,8 @@ pub enum GrammarError {
     EntityBindingNotFound(String),
     #[error("entity field not found: {0}")]
     EntityFieldNotFound(String),
+    #[error("markov generation error: {0}")]
+    MarkovError(String),
 }
 
 /// Accumulated state during grammar expansion.
@@ -40,6 +43,8 @@ pub struct SelectionContext<'a> {
     pub depth: u32,
     /// Optional voice grammar weight overrides (rule_name → multiplier).
     pub voice_weights: Option<&'a HashMap<String, f32>>,
+    /// Loaded Markov models keyed by corpus_id.
+    pub markov_models: HashMap<String, &'a MarkovModel>,
 }
 
 impl<'a> SelectionContext<'a> {
@@ -49,6 +54,7 @@ impl<'a> SelectionContext<'a> {
             entity_bindings: HashMap::new(),
             depth: 0,
             voice_weights: None,
+            markov_models: HashMap::new(),
         }
     }
 
@@ -59,6 +65,11 @@ impl<'a> SelectionContext<'a> {
 
     pub fn with_entity(mut self, role: &str, entity: &'a Entity) -> Self {
         self.entity_bindings.insert(role.to_string(), entity);
+        self
+    }
+
+    pub fn with_markov(mut self, corpus_id: &str, model: &'a MarkovModel) -> Self {
+        self.markov_models.insert(corpus_id.to_string(), model);
         self
     }
 }
@@ -359,8 +370,26 @@ impl GrammarSet {
                     output.push_str(&expanded);
                 }
                 TemplateSegment::MarkovRef { corpus, tag } => {
-                    // Placeholder until Markov system is implemented
-                    output.push_str(&format!("[markov:{}:{}]", corpus, tag));
+                    if let Some(model) = ctx.markov_models.get(corpus.as_str()) {
+                        match model.generate(rng, Some(tag), 5, 15) {
+                            Ok(text) => output.push_str(&text),
+                            Err(e) => {
+                                // Fall back to untagged generation
+                                match model.generate(rng, None, 5, 15) {
+                                    Ok(text) => output.push_str(&text),
+                                    Err(_) => {
+                                        return Err(GrammarError::MarkovError(format!(
+                                            "markov generation failed for {}:{}: {}",
+                                            corpus, tag, e
+                                        )));
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // No model loaded — emit placeholder
+                        output.push_str(&format!("[markov:{}:{}]", corpus, tag));
+                    }
                 }
                 TemplateSegment::EntityField { field } => {
                     output.push_str(&resolve_entity_field(ctx, field)?);
