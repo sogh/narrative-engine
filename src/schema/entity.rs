@@ -14,22 +14,17 @@ pub struct VoiceId(pub u64);
 
 /// Pronoun set for an entity, used by the grammar expansion system
 /// to resolve `{possessive}` and other pronoun template references.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub enum Pronouns {
     /// she/her/her/hers/herself
     SheHer,
     /// he/him/his/his/himself
     HeHim,
     /// they/them/their/theirs/themselves
+    #[default]
     TheyThem,
     /// it/its/its/its/itself
     ItIts,
-}
-
-impl Default for Pronouns {
-    fn default() -> Self {
-        Self::TheyThem
-    }
 }
 
 impl Pronouns {
@@ -189,7 +184,12 @@ mod tests {
         let entity = make_entity(&[]);
         assert!(matches!(entity.properties.get("title"), Some(Value::String(s)) if s == "Duchess"));
         assert!(matches!(entity.properties.get("age"), Some(Value::Int(45))));
-        assert!(matches!(entity.properties.get("composure"), Some(Value::Float(f)) if (*f - 0.85).abs() < f64::EPSILON));
-        assert!(matches!(entity.properties.get("is_host"), Some(Value::Bool(true))));
+        assert!(
+            matches!(entity.properties.get("composure"), Some(Value::Float(f)) if (*f - 0.85).abs() < f64::EPSILON)
+        );
+        assert!(matches!(
+            entity.properties.get("is_host"),
+            Some(Value::Bool(true))
+        ));
     }
 }

@@ -112,7 +112,10 @@ mod tests {
             stakes: Stakes::High,
             outcome: None,
             narrative_fn: NarrativeFunction::Confrontation,
-            metadata: HashMap::from([("held_item".to_string(), Value::String("wine glass".to_string()))]),
+            metadata: HashMap::from([(
+                "held_item".to_string(),
+                Value::String("wine glass".to_string()),
+            )]),
         };
         assert_eq!(event.mood, Mood::Tense);
         assert_eq!(event.stakes, Stakes::High);

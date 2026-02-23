@@ -1,7 +1,6 @@
 /// Corpus Trainer — trains Markov models from text corpora.
 ///
 /// Usage: corpus_trainer --input <file.txt> --output <model.ron> --ngram <2|3|4>
-
 use std::env;
 use std::process;
 
@@ -31,7 +30,9 @@ fn main() {
                 });
             }
             "--help" | "-h" => {
-                println!("Usage: corpus_trainer --input <file.txt> --output <model.ron> --ngram <2|3|4>");
+                println!(
+                    "Usage: corpus_trainer --input <file.txt> --output <model.ron> --ngram <2|3|4>"
+                );
                 process::exit(0);
             }
             other => {
@@ -75,17 +76,17 @@ fn main() {
     );
 
     if !model.tagged_transitions.is_empty() {
-        println!("Tags found: {:?}", model.tagged_transitions.keys().collect::<Vec<_>>());
+        println!(
+            "Tags found: {:?}",
+            model.tagged_transitions.keys().collect::<Vec<_>>()
+        );
     }
 
-    narrative_engine::core::markov::save_model(
-        &model,
-        std::path::Path::new(&output_path),
-    )
-    .unwrap_or_else(|e| {
-        eprintln!("Error saving model to '{}': {}", output_path, e);
-        process::exit(1);
-    });
+    narrative_engine::core::markov::save_model(&model, std::path::Path::new(&output_path))
+        .unwrap_or_else(|e| {
+            eprintln!("Error saving model to '{}': {}", output_path, e);
+            process::exit(1);
+        });
 
     println!("Model saved to '{}'", output_path);
 }

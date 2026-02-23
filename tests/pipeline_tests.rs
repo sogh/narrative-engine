@@ -1,5 +1,4 @@
 /// Pipeline integration tests — end-to-end event-to-text generation.
-
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;

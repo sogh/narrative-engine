@@ -2,7 +2,6 @@
 ///
 /// Wires together grammar expansion, voice selection, Markov fill,
 /// variety pass, and context checking.
-
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 use std::collections::HashMap;
@@ -187,7 +186,10 @@ impl NarrativeEngine {
                 Ok(text) => text,
                 Err(GrammarError::RuleNotFound(_)) => {
                     // Try without _opening suffix
-                    match self.grammars.expand(narrative_fn.name(), &mut ctx, &mut rng) {
+                    match self
+                        .grammars
+                        .expand(narrative_fn.name(), &mut ctx, &mut rng)
+                    {
                         Ok(text) => text,
                         Err(e) => return Err(PipelineError::Grammar(e)),
                     }
@@ -239,8 +241,7 @@ impl NarrativeEngine {
         ctx.tags.insert(event.stakes.tag().to_string());
 
         // Add narrative function as tag
-        ctx.tags
-            .insert(format!("fn:{}", narrative_fn.name()));
+        ctx.tags.insert(format!("fn:{}", narrative_fn.name()));
 
         // Add intensity-based tags
         let intensity = narrative_fn.intensity();
@@ -258,8 +259,7 @@ impl NarrativeEngine {
                 }
 
                 // Bind by role
-                ctx.entity_bindings
-                    .insert(participant.role.clone(), entity);
+                ctx.entity_bindings.insert(participant.role.clone(), entity);
 
                 // First participant is also "subject" if no explicit subject role
                 if i == 0 && !ctx.entity_bindings.contains_key("subject") {
@@ -274,8 +274,7 @@ impl NarrativeEngine {
                 for tag in &entity.tags {
                     ctx.tags.insert(tag.clone());
                 }
-                ctx.entity_bindings
-                    .insert(location.role.clone(), entity);
+                ctx.entity_bindings.insert(location.role.clone(), entity);
             }
         }
 
@@ -694,10 +693,7 @@ mod tests {
                 break;
             }
         }
-        assert!(
-            found_name,
-            "Expected entity name in at least one narration"
-        );
+        assert!(found_name, "Expected entity name in at least one narration");
     }
 
     #[test]
