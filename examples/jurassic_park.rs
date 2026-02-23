@@ -11,7 +11,7 @@
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;
-use narrative_engine::schema::entity::{Entity, EntityId, VoiceId};
+use narrative_engine::schema::entity::{Entity, EntityId, Pronouns, VoiceId};
 use narrative_engine::schema::event::{EntityRef, Event, Mood, Stakes};
 use narrative_engine::schema::narrative_fn::NarrativeFunction;
 use std::collections::HashMap;
@@ -46,6 +46,7 @@ fn main() {
         Entity {
             id: EntityId(1),
             name: "Dr. Grant".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["scientist".to_string(), "determined".to_string(), "field_expert".to_string()]
                 .into_iter()
                 .collect(),
@@ -61,6 +62,7 @@ fn main() {
         Entity {
             id: EntityId(2),
             name: "Dr. Malcolm".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["scientist".to_string(), "skeptic".to_string(), "charismatic".to_string()]
                 .into_iter()
                 .collect(),
@@ -76,6 +78,7 @@ fn main() {
         Entity {
             id: EntityId(3),
             name: "Muldoon".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["hunter".to_string(), "pragmatic".to_string(), "alert".to_string()]
                 .into_iter()
                 .collect(),
@@ -91,6 +94,7 @@ fn main() {
         Entity {
             id: EntityId(10),
             name: "Control Room".to_string(),
+            pronouns: Pronouns::ItIts,
             tags: ["location".to_string(), "technology".to_string(), "enclosed".to_string()]
                 .into_iter()
                 .collect(),
@@ -106,6 +110,7 @@ fn main() {
         Entity {
             id: EntityId(11),
             name: "Rex Paddock".to_string(),
+            pronouns: Pronouns::ItIts,
             tags: ["location".to_string(), "dangerous".to_string(), "perimeter".to_string()]
                 .into_iter()
                 .collect(),
@@ -121,6 +126,7 @@ fn main() {
         Entity {
             id: EntityId(12),
             name: "Raptor Pen".to_string(),
+            pronouns: Pronouns::ItIts,
             tags: ["location".to_string(), "dangerous".to_string(), "high_security".to_string()]
                 .into_iter()
                 .collect(),
@@ -136,6 +142,7 @@ fn main() {
         Entity {
             id: EntityId(20),
             name: "Security System".to_string(),
+            pronouns: Pronouns::ItIts,
             tags: ["system".to_string(), "automated".to_string()]
                 .into_iter()
                 .collect(),

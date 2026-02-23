@@ -514,6 +514,7 @@ mod tests {
         let margaret = Entity {
             id: EntityId(1),
             name: "Margaret".to_string(),
+            pronouns: crate::schema::entity::Pronouns::SheHer,
             tags: ["host".to_string(), "formal".to_string()]
                 .into_iter()
                 .collect(),
@@ -528,6 +529,7 @@ mod tests {
         let james = Entity {
             id: EntityId(2),
             name: "James".to_string(),
+            pronouns: crate::schema::entity::Pronouns::HeHim,
             tags: ["guest".to_string()].into_iter().collect(),
             relationships: Vec::new(),
             voice_id: None,

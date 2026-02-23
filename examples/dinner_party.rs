@@ -7,7 +7,7 @@
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;
-use narrative_engine::schema::entity::{Entity, EntityId, VoiceId};
+use narrative_engine::schema::entity::{Entity, EntityId, Pronouns, VoiceId};
 use narrative_engine::schema::event::{EntityRef, Event, Mood, Stakes};
 use narrative_engine::schema::narrative_fn::NarrativeFunction;
 use std::collections::HashMap;
@@ -40,6 +40,7 @@ fn main() {
         Entity {
             id: EntityId(1),
             name: "Margaret".to_string(),
+            pronouns: Pronouns::SheHer,
             tags: ["host".to_string(), "anxious".to_string(), "wealthy".to_string()]
                 .into_iter()
                 .collect(),
@@ -57,6 +58,7 @@ fn main() {
         Entity {
             id: EntityId(2),
             name: "James".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["guest".to_string(), "secretive".to_string()]
                 .into_iter()
                 .collect(),
@@ -72,6 +74,7 @@ fn main() {
         Entity {
             id: EntityId(3),
             name: "Eleanor".to_string(),
+            pronouns: Pronouns::SheHer,
             tags: ["guest".to_string(), "perceptive".to_string(), "caustic".to_string()]
                 .into_iter()
                 .collect(),
@@ -87,6 +90,7 @@ fn main() {
         Entity {
             id: EntityId(4),
             name: "Robert".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["guest".to_string(), "diplomatic".to_string()]
                 .into_iter()
                 .collect(),
@@ -102,6 +106,7 @@ fn main() {
         Entity {
             id: EntityId(100),
             name: "the dining room".to_string(),
+            pronouns: Pronouns::ItIts,
             tags: ["location".to_string(), "formal".to_string(), "elegant".to_string()]
                 .into_iter()
                 .collect(),

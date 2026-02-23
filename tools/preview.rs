@@ -264,6 +264,7 @@ fn main() {
                     Entity {
                         id: eid,
                         name: name.clone(),
+                        pronouns: narrative_engine::schema::entity::Pronouns::TheyThem,
                         tags,
                         relationships: Vec::new(),
                         voice_id: active_voice_id,

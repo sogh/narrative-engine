@@ -452,13 +452,17 @@ fn resolve_entity_field(ctx: &SelectionContext<'_>, field: &str) -> Result<Strin
     }
 }
 
-/// Resolve a pronoun reference to entity name (full pronoun resolution comes later).
+/// Resolve a pronoun reference using the entity's pronoun set.
+///
+/// - `{subject}` → entity name (templates expect the name here)
+/// - `{object}` → entity name for the "object" role
+/// - `{possessive}` → possessive pronoun (her, his, their, its)
 fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, GrammarError> {
     // Map pronoun role to entity binding
     let binding_key = match role {
         "subject" => "subject",
         "object" => "object",
-        "possessive" => "subject", // possessive uses subject's name for now
+        "possessive" => "subject",
         other => other,
     };
 
@@ -470,7 +474,7 @@ fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, Gra
         .ok_or_else(|| GrammarError::EntityBindingNotFound(role.to_string()))?;
 
     match role {
-        "possessive" => Ok(format!("{}'s", entity.name)),
+        "possessive" => Ok(entity.pronouns.possessive().to_string()),
         _ => Ok(entity.name.clone()),
     }
 }
@@ -485,6 +489,7 @@ mod tests {
         Entity {
             id: EntityId(1),
             name: name.to_string(),
+            pronouns: crate::schema::entity::Pronouns::SheHer,
             tags: FxHashSet::default(),
             relationships: Vec::new(),
             voice_id: Some(VoiceId(1)),

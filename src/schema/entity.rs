@@ -12,6 +12,78 @@ pub struct EntityId(pub u64);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct VoiceId(pub u64);
 
+/// Pronoun set for an entity, used by the grammar expansion system
+/// to resolve `{possessive}` and other pronoun template references.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Pronouns {
+    /// she/her/her/hers/herself
+    SheHer,
+    /// he/him/his/his/himself
+    HeHim,
+    /// they/them/their/theirs/themselves
+    TheyThem,
+    /// it/its/its/its/itself
+    ItIts,
+}
+
+impl Default for Pronouns {
+    fn default() -> Self {
+        Self::TheyThem
+    }
+}
+
+impl Pronouns {
+    /// Nominative/subject form: "she", "he", "they", "it".
+    pub fn subject(&self) -> &'static str {
+        match self {
+            Self::SheHer => "she",
+            Self::HeHim => "he",
+            Self::TheyThem => "they",
+            Self::ItIts => "it",
+        }
+    }
+
+    /// Accusative/object form: "her", "him", "them", "it".
+    pub fn object(&self) -> &'static str {
+        match self {
+            Self::SheHer => "her",
+            Self::HeHim => "him",
+            Self::TheyThem => "them",
+            Self::ItIts => "it",
+        }
+    }
+
+    /// Possessive determiner: "her", "his", "their", "its".
+    pub fn possessive(&self) -> &'static str {
+        match self {
+            Self::SheHer => "her",
+            Self::HeHim => "his",
+            Self::TheyThem => "their",
+            Self::ItIts => "its",
+        }
+    }
+
+    /// Possessive standalone: "hers", "his", "theirs", "its".
+    pub fn possessive_standalone(&self) -> &'static str {
+        match self {
+            Self::SheHer => "hers",
+            Self::HeHim => "his",
+            Self::TheyThem => "theirs",
+            Self::ItIts => "its",
+        }
+    }
+
+    /// Reflexive: "herself", "himself", "themselves", "itself".
+    pub fn reflexive(&self) -> &'static str {
+        match self {
+            Self::SheHer => "herself",
+            Self::HeHim => "himself",
+            Self::TheyThem => "themselves",
+            Self::ItIts => "itself",
+        }
+    }
+}
+
 /// A dynamic value that can be stored in entity properties.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Value {
@@ -30,6 +102,7 @@ pub enum Value {
 pub struct Entity {
     pub id: EntityId,
     pub name: String,
+    pub pronouns: Pronouns,
     pub tags: FxHashSet<String>,
     pub relationships: Vec<Relationship>,
     pub voice_id: Option<VoiceId>,
@@ -60,6 +133,7 @@ mod tests {
         Entity {
             id: EntityId(1),
             name: "Margaret".to_string(),
+            pronouns: Pronouns::SheHer,
             tags: tag_set,
             relationships: Vec::new(),
             voice_id: Some(VoiceId(10)),

@@ -10,6 +10,6 @@ pub mod schema;
 
 // Public API re-exports
 pub use core::pipeline::{NarrativeEngine, NarrativeEngineBuilder, PipelineError, WorldState};
-pub use schema::entity::{Entity, EntityId, Value, VoiceId};
+pub use schema::entity::{Entity, EntityId, Pronouns, Value, VoiceId};
 pub use schema::event::{EntityRef, Event, Mood, Outcome, Stakes};
 pub use schema::narrative_fn::NarrativeFunction;

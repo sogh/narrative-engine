@@ -3,7 +3,7 @@
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;
-use narrative_engine::schema::entity::{Entity, EntityId, VoiceId};
+use narrative_engine::schema::entity::{Entity, EntityId, Pronouns, VoiceId};
 use narrative_engine::schema::event::{EntityRef, Event, Mood, Stakes};
 use narrative_engine::schema::narrative_fn::NarrativeFunction;
 use std::collections::HashMap;
@@ -50,6 +50,7 @@ fn genre_blending_social_drama_and_survival_thriller() {
         Entity {
             id: EntityId(1),
             name: "Dr. Grant".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["scientist".to_string(), "determined".to_string()]
                 .into_iter()
                 .collect(),
@@ -63,6 +64,7 @@ fn genre_blending_social_drama_and_survival_thriller() {
         Entity {
             id: EntityId(2),
             name: "Hammond".to_string(),
+            pronouns: Pronouns::HeHim,
             tags: ["host".to_string(), "wealthy".to_string()]
                 .into_iter()
                 .collect(),
