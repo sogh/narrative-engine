@@ -90,7 +90,8 @@ pub enum TemplateSegment {
     MarkovRef { corpus: String, tag: String },
     /// Entity field interpolation: `{entity.field}`.
     EntityField { field: String },
-    /// Pronoun-aware entity reference: `{subject}`, `{object}`, `{possessive}`.
+    /// Pronoun-aware entity reference: `{subject}`, `{object}`, `{possessive}`,
+    /// `{possessive_standalone}`, `{reflexive}`.
     PronounRef { role: String },
 }
 
@@ -107,7 +108,7 @@ impl Template {
     /// - `{rule_name}` → `RuleRef`
     /// - `{markov:corpus:tag}` → `MarkovRef`
     /// - `{entity.field}` → `EntityField`
-    /// - `{subject}` / `{object}` / `{possessive}` → `PronounRef`
+    /// - `{subject}` / `{object}` / `{possessive}` / `{possessive_standalone}` / `{reflexive}` → `PronounRef`
     /// - `{{` → literal `{`
     /// - Everything else → `Literal`
     pub fn parse(input: &str) -> Result<Template, GrammarError> {
@@ -188,7 +189,7 @@ impl Template {
     fn parse_segment(content: &str) -> Result<TemplateSegment, GrammarError> {
         // Check for pronoun refs
         match content {
-            "subject" | "object" | "possessive" => {
+            "subject" | "object" | "possessive" | "possessive_standalone" | "reflexive" => {
                 return Ok(TemplateSegment::PronounRef {
                     role: content.to_string(),
                 });
@@ -457,13 +458,15 @@ fn resolve_entity_field(ctx: &SelectionContext<'_>, field: &str) -> Result<Strin
 ///
 /// - `{subject}` → entity name (templates expect the name here)
 /// - `{object}` → entity name for the "object" role
-/// - `{possessive}` → possessive pronoun (her, his, their, its)
+/// - `{possessive}` → possessive determiner (her, his, their, its)
+/// - `{possessive_standalone}` → independent possessive (hers, his, theirs, its)
+/// - `{reflexive}` → reflexive pronoun (herself, himself, themselves, itself)
 fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, GrammarError> {
     // Map pronoun role to entity binding
     let binding_key = match role {
         "subject" => "subject",
         "object" => "object",
-        "possessive" => "subject",
+        "possessive" | "possessive_standalone" | "reflexive" => "subject",
         other => other,
     };
 
@@ -476,6 +479,8 @@ fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, Gra
 
     match role {
         "possessive" => Ok(entity.pronouns.possessive().to_string()),
+        "possessive_standalone" => Ok(entity.pronouns.possessive_standalone().to_string()),
+        "reflexive" => Ok(entity.pronouns.reflexive().to_string()),
         _ => Ok(entity.name.clone()),
     }
 }
@@ -625,7 +630,7 @@ mod tests {
     #[test]
     fn load_test_grammar_from_ron() {
         let gs = load_test_grammar();
-        assert_eq!(gs.rules.len(), 7);
+        assert_eq!(gs.rules.len(), 9);
         assert!(gs.rules.contains_key("greeting"));
         assert!(gs.rules.contains_key("tense_observation"));
         assert!(gs.rules.contains_key("action_detail"));
@@ -633,6 +638,8 @@ mod tests {
         assert!(gs.rules.contains_key("calm_greeting"));
         assert!(gs.rules.contains_key("recursive_bomb"));
         assert!(gs.rules.contains_key("markov_test"));
+        assert!(gs.rules.contains_key("possessive_standalone_test"));
+        assert!(gs.rules.contains_key("reflexive_test"));
 
         let greeting = &gs.rules["greeting"];
         assert_eq!(greeting.alternatives.len(), 3);
@@ -924,5 +931,95 @@ mod tests {
 
         let result = gs.expand("nonexistent_rule", &mut ctx, &mut rng);
         assert!(matches!(result, Err(GrammarError::RuleNotFound(_))));
+    }
+
+    #[test]
+    fn parse_possessive_standalone_ref() {
+        let t = Template::parse("The secret was no longer {possessive_standalone} alone.").unwrap();
+        assert_eq!(
+            t.segments[1],
+            TemplateSegment::PronounRef {
+                role: "possessive_standalone".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn parse_reflexive_ref() {
+        let t = Template::parse("{subject} reminded {reflexive} to stay calm.").unwrap();
+        assert_eq!(
+            t.segments[2],
+            TemplateSegment::PronounRef {
+                role: "reflexive".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn expand_possessive_standalone() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+        let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs
+            .expand("possessive_standalone_test", &mut ctx, &mut rng)
+            .unwrap();
+        assert_eq!(result, "The secret was no longer hers alone.");
+    }
+
+    #[test]
+    fn expand_reflexive() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret");
+        let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs
+            .expand("reflexive_test", &mut ctx, &mut rng)
+            .unwrap();
+        assert_eq!(result, "Margaret reminded herself to stay calm.");
+    }
+
+    #[test]
+    fn possessive_standalone_he_him() {
+        let entity = Entity {
+            id: EntityId(2),
+            name: "James".to_string(),
+            pronouns: crate::schema::entity::Pronouns::HeHim,
+            tags: FxHashSet::default(),
+            relationships: Vec::new(),
+            voice_id: Some(VoiceId(1)),
+            properties: HashMap::new(),
+        };
+        let gs = load_test_grammar();
+        let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs
+            .expand("possessive_standalone_test", &mut ctx, &mut rng)
+            .unwrap();
+        assert_eq!(result, "The secret was no longer his alone.");
+    }
+
+    #[test]
+    fn possessive_standalone_they_them() {
+        let entity = Entity {
+            id: EntityId(3),
+            name: "Alex".to_string(),
+            pronouns: crate::schema::entity::Pronouns::TheyThem,
+            tags: FxHashSet::default(),
+            relationships: Vec::new(),
+            voice_id: Some(VoiceId(1)),
+            properties: HashMap::new(),
+        };
+        let gs = load_test_grammar();
+        let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs
+            .expand("possessive_standalone_test", &mut ctx, &mut rng)
+            .unwrap();
+        assert_eq!(result, "The secret was no longer theirs alone.");
     }
 }

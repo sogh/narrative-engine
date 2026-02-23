@@ -55,4 +55,18 @@
             (weight: 1, text: "She said {markov:dialogue:accusatory} quietly."),
         ],
     ),
+    "possessive_standalone_test": Rule(
+        requires: [],
+        excludes: [],
+        alternatives: [
+            (weight: 1, text: "The secret was no longer {possessive_standalone} alone."),
+        ],
+    ),
+    "reflexive_test": Rule(
+        requires: [],
+        excludes: [],
+        alternatives: [
+            (weight: 1, text: "{subject} reminded {reflexive} to stay calm."),
+        ],
+    ),
 }
