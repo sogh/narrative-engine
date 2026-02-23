@@ -9,6 +9,7 @@
 /// Run with: cargo run --example jurassic_park
 
 use narrative_engine::core::grammar::GrammarSet;
+use narrative_engine::core::markov::MarkovTrainer;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;
 use narrative_engine::schema::entity::{Entity, EntityId, Pronouns, VoiceId};
@@ -30,10 +31,19 @@ fn main() {
         ))
         .expect("Failed to load survival thriller voices");
 
+    // --- Train Markov model from survival thriller corpus ---
+    let corpus = std::fs::read_to_string("genre_data/survival_thriller/corpus.txt")
+        .expect("Failed to read survival thriller corpus");
+    let markov_model = MarkovTrainer::train(&corpus, 3);
+
+    let mut markov_models = HashMap::new();
+    markov_models.insert("survival_thriller".to_string(), markov_model);
+
     let mut engine = NarrativeEngine::builder()
         .seed(1993) // the year the movie came out
         .with_grammars(grammars)
         .with_voices(voices)
+        .with_markov_models(markov_models)
         .build()
         .expect("Failed to build engine");
 

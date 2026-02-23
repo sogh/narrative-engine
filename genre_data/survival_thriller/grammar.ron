@@ -24,6 +24,7 @@
             (weight: 1, text: "The alarms confirmed what they already knew. {technical_readout}"),
             (weight: 2, text: "The radio crackled. \"{radio_chatter}\" {urgency_marker}"),
             (weight: 2, text: "\"Does anyone copy?\" {subject} barked into the handset. {sensory_detail}"),
+            (weight: 1, text: "{markov:survival_thriller:urgent}"),
         ],
     ),
     "escalation_closing": Rule(
@@ -98,6 +99,7 @@
             (weight: 2, text: "The loss rippled outward, compounding every other problem. {environmental_detail}"),
             (weight: 2, text: "{sensory_detail} Some things, once broken, cannot be repaired."),
             (weight: 1, text: "{subject} allowed {possessive} composure to crack, just for a moment."),
+            (weight: 1, text: "{markov:survival_thriller:dread}"),
         ],
     ),
     "loss_closing": Rule(
@@ -135,6 +137,7 @@
             (weight: 1, text: "The calm was itself a warning. Nature does not go quiet without reason."),
             (weight: 2, text: "\"Something isn't right,\" {subject} murmured. {environmental_detail}"),
             (weight: 2, text: "\"You hear that?\" {subject} asked. Everyone stopped. \"Exactly,\" {subject} said. \"Nothing.\""),
+            (weight: 1, text: "{markov:survival_thriller:dread}"),
         ],
     ),
     "foreshadowing_closing": Rule(
@@ -172,6 +175,7 @@
             (weight: 2, text: "{environmental_detail} Conditions were evolving faster than they could track."),
             (weight: 2, text: "{subject} relayed the update. {urgency_marker}"),
             (weight: 1, text: "Every plan was now obsolete. New ones were needed. Fast."),
+            (weight: 1, text: "{markov:survival_thriller:technical}"),
         ],
     ),
     "status_change_closing": Rule(

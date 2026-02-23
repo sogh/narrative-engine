@@ -5,6 +5,7 @@
 /// Run with: cargo run --example dinner_party
 
 use narrative_engine::core::grammar::GrammarSet;
+use narrative_engine::core::markov::MarkovTrainer;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;
 use narrative_engine::schema::entity::{Entity, EntityId, Pronouns, VoiceId};
@@ -24,10 +25,19 @@ fn main() {
         .load_from_ron(std::path::Path::new("genre_data/social_drama/voices.ron"))
         .expect("Failed to load social drama voices");
 
+    // --- Train Markov model from social drama corpus ---
+    let corpus = std::fs::read_to_string("genre_data/social_drama/corpus.txt")
+        .expect("Failed to read social drama corpus");
+    let markov_model = MarkovTrainer::train(&corpus, 3);
+
+    let mut markov_models = HashMap::new();
+    markov_models.insert("social_drama".to_string(), markov_model);
+
     let mut engine = NarrativeEngine::builder()
         .seed(2026)
         .with_grammars(grammars)
         .with_voices(voices)
+        .with_markov_models(markov_models)
         .build()
         .expect("Failed to build engine");
 

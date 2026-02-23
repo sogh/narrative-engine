@@ -24,6 +24,7 @@
             (weight: 1, text: "A confession, finally. {emotional_reaction} The weight of secrecy lifted."),
             (weight: 2, text: "\"{dialogue_line}\" The words escaped before anyone could stop them. {body_language}"),
             (weight: 2, text: "{object} set down {possessive} glass. \"How long have you known?\" {emotional_reaction}"),
+            (weight: 1, text: "{markov:social_drama:tense}"),
         ],
     ),
     "revelation_closing": Rule(
@@ -63,6 +64,7 @@
             (weight: 1, text: "{dialogue_tag}, the challenge hung in the air between them. {room_detail}"),
             (weight: 2, text: "\"I beg your pardon?\" {object} replied. {subject} did not flinch. \"{dialogue_line}\""),
             (weight: 2, text: "\"You owe me an explanation,\" {subject} said. {object} looked away. {body_language}"),
+            (weight: 1, text: "{markov:social_drama:tense}"),
         ],
     ),
     "confrontation_closing": Rule(
@@ -137,6 +139,7 @@
             (weight: 2, text: "A subtle nod, a shared look — the pact was sealed without a word. {body_language}"),
             (weight: 2, text: "Together, they might navigate what neither could face alone. {room_detail}"),
             (weight: 1, text: "{dialogue_tag}, they clinked glasses, a private toast to their new understanding."),
+            (weight: 1, text: "{markov:social_drama:warm}"),
         ],
     ),
     "alliance_closing": Rule(
@@ -174,6 +177,7 @@
             (weight: 2, text: "The absurdity of it all became suddenly, overwhelmingly apparent. {social_observation}"),
             (weight: 2, text: "Laughter echoed off the high ceilings. {room_detail}"),
             (weight: 1, text: "{subject} grinned. It was the kind of joke that only worked because everything else had gone so wrong."),
+            (weight: 1, text: "{markov:social_drama:gossip}"),
         ],
     ),
     "comic_relief_closing": Rule(
