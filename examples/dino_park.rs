@@ -1,4 +1,4 @@
-/// Jurassic Park example — demonstrates the Survival Thriller genre template.
+/// Dino Park example — demonstrates the Survival Thriller genre template.
 ///
 /// A sequence: routine status → power warning → perimeter breach → escalation →
 ///             discovery of damage → critical failure.
@@ -6,7 +6,7 @@
 /// Uses radio_operator and narrator_omniscient voices to alternate between
 /// terse status reports and atmospheric narration.
 ///
-/// Run with: cargo run --example jurassic_park
+/// Run with: cargo run --example dino_park
 
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::markov::MarkovTrainer;
@@ -40,7 +40,7 @@ fn main() {
     markov_models.insert("survival_thriller".to_string(), markov_model);
 
     let mut engine = NarrativeEngine::builder()
-        .seed(1993) // the year the movie came out
+        .seed(1993)
         .with_grammars(grammars)
         .with_voices(voices)
         .with_markov_models(markov_models)
@@ -168,8 +168,8 @@ fn main() {
 
     // --- Title ---
     println!("========================================");
-    println!("   ISLA NUBLAR INCIDENT REPORT");
-    println!("   [CLASSIFIED — InGen Security]");
+    println!("   DINO PARK INCIDENT REPORT");
+    println!("   [CLASSIFIED — Park Security]");
     println!("========================================");
     println!();
 

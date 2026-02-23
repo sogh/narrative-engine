@@ -32,5 +32,5 @@ name = "dinner_party"
 path = "examples/dinner_party.rs"
 
 [[example]]
-name = "jurassic_park"
-path = "examples/jurassic_park.rs"
+name = "dino_park"
+path = "examples/dino_park.rs"
