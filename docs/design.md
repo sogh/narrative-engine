@@ -33,7 +33,7 @@ The library is designed to serve games across a spectrum of genres. The followin
 | Dinner Party Sim | Social Drama | Dialogue, internal monologue, gossip |
 | Promenade | Exploration + Social | Environmental narration, NPC commentary |
 | Game of Thrones Sim | Political Intrigue + Social Drama | Letters, scheming dialogue, proclamations |
-| Jurassic Park Sim | Survival Thriller | Status reports, radio chatter, warning signs |
+| Dino Park Sim | Survival Thriller | Status reports, radio chatter, warning signs |
 | Battlestar Galactica Sim | Survival Thriller + Political Intrigue | Military comms, political speeches, logs |
 
 ---
@@ -98,7 +98,7 @@ Entity {
 }
 ```
 
-Tags are free-form strings defined by the game. Example tags for a dinner party character: `["host", "anxious", "hiding-secret", "wealthy"]`. Example tags for a Jurassic Park location: `["location", "paddock", "compromised", "high-danger"]`.
+Tags are free-form strings defined by the game. Example tags for a dinner party character: `["host", "anxious", "hiding-secret", "wealthy"]`. Example tags for a Dino Park location: `["location", "paddock", "compromised", "high-danger"]`.
 
 #### 3.1.2 Event
 
@@ -277,7 +277,7 @@ The Markov generator, drawing from a corpus trained on tense social confrontatio
 
 The context system verifies this doesn't repeat recent patterns, applies pronoun resolution if needed, and clears the output for delivery.
 
-### 4.2 End-to-End Example: Jurassic Park
+### 4.2 End-to-End Example: Dino Park
 
 The same pipeline, different content:
 

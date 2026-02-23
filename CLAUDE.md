@@ -61,7 +61,7 @@ narrative-engine/
 │   └── fixtures/            # Test grammars, corpora, voices
 └── examples/
     ├── dinner_party.rs
-    └── jurassic_park.rs
+    └── dino_park.rs
 ```
 
 ## Architecture Principles

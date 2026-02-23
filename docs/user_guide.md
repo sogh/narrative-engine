@@ -41,7 +41,7 @@ This guide covers everything you need to integrate the engine into your game, au
   - [Preview Shell](#preview-shell)
 - [End-to-End Examples](#end-to-end-examples)
   - [Dinner Party (Social Drama)](#dinner-party-social-drama)
-  - [Jurassic Park (Survival Thriller)](#jurassic-park-survival-thriller)
+  - [Dino Park (Survival Thriller)](#dino-park-survival-thriller)
 - [Determinism and Seeding](#determinism-and-seeding)
 - [Performance](#performance)
 - [Extending the Engine](#extending-the-engine)
@@ -833,12 +833,12 @@ let event = Event {
 let text = engine.narrate(&event, &world)?;
 ```
 
-### Jurassic Park (Survival Thriller)
+### Dino Park (Survival Thriller)
 
-The `jurassic_park` example validates that the same engine with different content produces a completely different genre feel.
+The `dino_park` example validates that the same engine with different content produces a completely different genre feel.
 
 ```bash
-cargo run --example jurassic_park
+cargo run --example dino_park
 ```
 
 **Setup:** 7 entities (Dr. Grant, Dr. Malcolm, Muldoon, Control Room, Rex Paddock, Raptor Pen, Security System). Uses `radio_operator` and `narrator_omniscient` voices to alternate between terse status reports and atmospheric narration.
