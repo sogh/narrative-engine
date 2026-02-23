@@ -6,7 +6,7 @@ description = "A reusable library for procedural text generation in games"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/sogh/narrative-engine"
-keywords = ["games", "procedural-generation", "text-generation", "narrative", "grammar"]
+keywords = ["games", "procgen", "text-generation", "narrative", "grammar"]
 categories = ["game-engines", "text-processing"]
 
 [dependencies]
