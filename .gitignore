@@ -1,1 +1,18 @@
 /target
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development logs (internal)
+prompt-log/
+done-work/
+to-do/
