@@ -3,7 +3,7 @@
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
 use narrative_engine::core::voice::VoiceRegistry;
-use narrative_engine::schema::entity::{Entity, EntityId, Value, VoiceId};
+use narrative_engine::schema::entity::{Entity, EntityId, VoiceId};
 use narrative_engine::schema::event::{EntityRef, Event, Mood, Stakes};
 use narrative_engine::schema::narrative_fn::NarrativeFunction;
 use std::collections::HashMap;
