@@ -29,6 +29,7 @@ fn social_drama_grammar_loads() {
         "emotional_reaction",
         "body_language",
         "dialogue_tag",
+        "dialogue_line",
         "social_observation",
         "room_detail",
     ];
@@ -70,6 +71,7 @@ fn survival_thriller_grammar_loads() {
         "sensory_detail",
         "technical_readout",
         "urgency_marker",
+        "radio_chatter",
     ];
 
     for rule_name in &expected_rules {

@@ -9,6 +9,8 @@
             (weight: 2, text: "{subject} looked at each of them in turn. {emotional_reaction}"),
             (weight: 2, text: "It was {subject} who broke the silence. {social_observation}"),
             (weight: 1, text: "Without warning, {subject} spoke the words that would change everything. {room_detail}"),
+            (weight: 2, text: "{subject} drew a breath and spoke. \"{dialogue_line}\" {emotional_reaction}"),
+            (weight: 2, text: "\"There is something I have been meaning to say,\" {subject} began. {body_language}"),
         ],
     ),
     "revelation_body": Rule(
@@ -20,6 +22,8 @@
             (weight: 2, text: "There was no taking it back now. The words had been said. {social_observation}"),
             (weight: 2, text: "{subject} watched the realization dawn across their faces. {room_detail}"),
             (weight: 1, text: "A confession, finally. {emotional_reaction} The weight of secrecy lifted."),
+            (weight: 2, text: "\"{dialogue_line}\" The words escaped before anyone could stop them. {body_language}"),
+            (weight: 2, text: "{object} set down {possessive} glass. \"How long have you known?\" {emotional_reaction}"),
         ],
     ),
     "revelation_closing": Rule(
@@ -44,6 +48,8 @@
             (weight: 2, text: "{dialogue_tag}, {subject} said, \"We need to discuss this.\" {emotional_reaction}"),
             (weight: 2, text: "It had been building all evening. {subject} could hold back no longer. {social_observation}"),
             (weight: 1, text: "{room_detail} {subject} squared {possessive} shoulders and spoke."),
+            (weight: 2, text: "\"You cannot be serious.\" {subject} stared at {object}. {body_language}"),
+            (weight: 2, text: "{subject} leveled {possessive} gaze at {object}. \"That is not what I was told.\" {emotional_reaction}"),
         ],
     ),
     "confrontation_body": Rule(
@@ -55,6 +61,8 @@
             (weight: 2, text: "The other guests shifted uncomfortably. {social_observation}"),
             (weight: 2, text: "Each accusation landed like a physical blow. {emotional_reaction}"),
             (weight: 1, text: "{dialogue_tag}, the challenge hung in the air between them. {room_detail}"),
+            (weight: 2, text: "\"I beg your pardon?\" {object} replied. {subject} did not flinch. \"{dialogue_line}\""),
+            (weight: 2, text: "\"You owe me an explanation,\" {subject} said. {object} looked away. {body_language}"),
         ],
     ),
     "confrontation_closing": Rule(
@@ -79,6 +87,8 @@
             (weight: 2, text: "{subject} stared at {object}, searching for some sign that this was a mistake. {social_observation}"),
             (weight: 2, text: "Trust, once broken, makes a sound like crystal shattering. {room_detail}"),
             (weight: 1, text: "It was the smile that gave it away. {subject} saw it and understood everything."),
+            (weight: 2, text: "{subject} turned to {object}. \"How could you?\" {emotional_reaction}"),
+            (weight: 2, text: "\"{dialogue_line}\" {subject}'s voice cracked on the last word. {body_language}"),
         ],
     ),
     "betrayal_body": Rule(
@@ -114,6 +124,8 @@
             (weight: 2, text: "{subject} moved closer to {object}, lowering {possessive} voice. {deliberate_action}"),
             (weight: 2, text: "Sometimes, enemies of enemies make the best friends. {room_detail}"),
             (weight: 1, text: "{dialogue_tag}, {subject} whispered, \"I think we can help each other.\""),
+            (weight: 2, text: "\"Perhaps we should all sit down,\" {subject} murmured to {object}. {social_observation}"),
+            (weight: 2, text: "{subject} leaned toward {object}. \"{dialogue_line}\" {body_language}"),
         ],
     ),
     "alliance_body": Rule(
@@ -149,6 +161,8 @@
             (weight: 2, text: "Leave it to {subject} to find humor in the wreckage. {social_observation}"),
             (weight: 2, text: "{dialogue_tag}, {subject} quipped, and the tension broke like a fever."),
             (weight: 1, text: "An unexpected burst of laughter cut through the room. {room_detail}"),
+            (weight: 2, text: "\"{dialogue_line}\" {subject} said with a grin, and despite everything, someone laughed."),
+            (weight: 2, text: "\"Well,\" {subject} said, raising {possessive} glass, \"at least the wine is good.\" {emotional_reaction}"),
         ],
     ),
     "comic_relief_body": Rule(
@@ -239,6 +253,19 @@
             (weight: 2, text: "Crystal glasses caught the light and scattered it like secrets."),
             (weight: 2, text: "The grandfather clock in the hall marked the hour."),
             (weight: 1, text: "Outside, the garden was dark. Inside, it was darker still."),
+        ],
+    ),
+    "dialogue_line": Rule(
+        requires: [],
+        excludes: [],
+        alternatives: [
+            (weight: 3, text: "I beg your pardon?"),
+            (weight: 2, text: "You cannot be serious."),
+            (weight: 2, text: "How long have you known?"),
+            (weight: 2, text: "That is not what I was told."),
+            (weight: 2, text: "Perhaps we should all sit down."),
+            (weight: 1, text: "I think we both know that is not entirely true."),
+            (weight: 1, text: "You will forgive me if I find that difficult to believe."),
         ],
     ),
 }
