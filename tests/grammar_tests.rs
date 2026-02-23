@@ -1,5 +1,4 @@
 /// Grammar expansion and linting integration tests.
-
 use narrative_engine::core::grammar::GrammarSet;
 
 #[test]

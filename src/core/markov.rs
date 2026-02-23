@@ -1,11 +1,13 @@
 /// Markov chain phrase generator — training, serialization, and generation.
-
 use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use rand::rngs::StdRng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use thiserror::Error;
+
+/// Transition table mapping n-gram prefixes to weighted next-token options.
+type TransitionTable = HashMap<Vec<String>, Vec<(String, u32)>>;
 
 #[derive(Debug, Error)]
 pub enum MarkovError {
@@ -34,9 +36,9 @@ pub struct MarkovModel {
     /// N-gram depth (e.g., 2 for bigrams, 3 for trigrams).
     pub n: usize,
     /// Transition table: n-gram prefix → [(next_token, count)].
-    pub transitions: HashMap<Vec<String>, Vec<(String, u32)>>,
+    pub transitions: TransitionTable,
     /// Tag-specific transition tables.
-    pub tagged_transitions: HashMap<String, HashMap<Vec<String>, Vec<(String, u32)>>>,
+    pub tagged_transitions: HashMap<String, TransitionTable>,
 }
 
 impl MarkovModel {
@@ -53,7 +55,9 @@ impl MarkovModel {
         max_words: usize,
     ) -> Result<String, MarkovError> {
         let transitions = if let Some(tag) = tag {
-            self.tagged_transitions.get(tag).ok_or(MarkovError::NoData)?
+            self.tagged_transitions
+                .get(tag)
+                .ok_or(MarkovError::NoData)?
         } else {
             &self.transitions
         };
@@ -118,11 +122,7 @@ impl MarkovModel {
 }
 
 /// Pick the next token from transitions given a state prefix.
-fn pick_next(
-    transitions: &HashMap<Vec<String>, Vec<(String, u32)>>,
-    state: &[String],
-    rng: &mut StdRng,
-) -> Option<String> {
+fn pick_next(transitions: &TransitionTable, state: &[String], rng: &mut StdRng) -> Option<String> {
     let options = transitions.get(state)?;
     if options.is_empty() {
         return None;
@@ -157,11 +157,8 @@ impl MarkovTrainer {
     pub fn train(text: &str, n: usize) -> MarkovModel {
         assert!((2..=4).contains(&n), "n-gram depth must be 2-4");
 
-        let mut transitions: HashMap<Vec<String>, Vec<(String, u32)>> = HashMap::new();
-        let mut tagged_transitions: HashMap<
-            String,
-            HashMap<Vec<String>, Vec<(String, u32)>>,
-        > = HashMap::new();
+        let mut transitions: TransitionTable = HashMap::new();
+        let mut tagged_transitions: HashMap<String, TransitionTable> = HashMap::new();
 
         let mut current_tag: Option<String> = None;
 
@@ -197,9 +194,7 @@ impl MarkovTrainer {
 
                     // Add to tagged transitions if we have a tag
                     if let Some(ref tag) = current_tag {
-                        let tag_table = tagged_transitions
-                            .entry(tag.clone())
-                            .or_default();
+                        let tag_table = tagged_transitions.entry(tag.clone()).or_default();
                         add_transition(tag_table, prefix, next);
                     }
                 }
@@ -215,11 +210,7 @@ impl MarkovTrainer {
 }
 
 /// Add a transition to a transition table, incrementing the count.
-fn add_transition(
-    table: &mut HashMap<Vec<String>, Vec<(String, u32)>>,
-    prefix: Vec<String>,
-    next: String,
-) {
+fn add_transition(table: &mut TransitionTable, prefix: Vec<String>, next: String) {
     let entries = table.entry(prefix).or_default();
     if let Some(entry) = entries.iter_mut().find(|(tok, _)| tok == &next) {
         entry.1 += 1;
@@ -262,11 +253,12 @@ fn split_into_sentences(tokens: &[String]) -> Vec<Vec<String>> {
 
     for tok in tokens {
         current.push(tok.clone());
-        if tok.len() == 1 && SENTENCE_ENDERS.contains(&tok.chars().next().unwrap()) {
-            if !current.is_empty() {
-                sentences.push(current.clone());
-                current.clear();
-            }
+        if tok.len() == 1
+            && SENTENCE_ENDERS.contains(&tok.chars().next().unwrap())
+            && !current.is_empty()
+        {
+            sentences.push(current.clone());
+            current.clear();
         }
     }
 
@@ -388,7 +380,7 @@ fn pick_next_blended(
 /// Save a MarkovModel to a RON file.
 pub fn save_model(model: &MarkovModel, path: &std::path::Path) -> Result<(), MarkovError> {
     let serialized = ron::ser::to_string_pretty(model, ron::ser::PrettyConfig::default())
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+        .map_err(|e| std::io::Error::other(e.to_string()))?;
     std::fs::write(path, serialized)?;
     Ok(())
 }
@@ -459,7 +451,11 @@ mod tests {
         let result = model.generate(&mut rng, None, 3, 20).unwrap();
         assert!(!result.is_empty());
         let word_count = result.split_whitespace().count();
-        assert!(word_count >= 3, "Expected at least 3 words, got: {}", word_count);
+        assert!(
+            word_count >= 3,
+            "Expected at least 3 words, got: {}",
+            word_count
+        );
     }
 
     #[test]
@@ -507,7 +503,10 @@ mod tests {
                 }
             }
         }
-        assert!(found_different, "Tagged generation should produce different output");
+        assert!(
+            found_different,
+            "Tagged generation should produce different output"
+        );
     }
 
     #[test]
@@ -550,14 +549,7 @@ mod tests {
         let model = train_test_corpus();
         let mut rng = StdRng::seed_from_u64(42);
 
-        let result = MarkovBlender::generate(
-            &[(&model, 1.0)],
-            &mut rng,
-            None,
-            3,
-            20,
-        )
-        .unwrap();
+        let result = MarkovBlender::generate(&[(&model, 1.0)], &mut rng, None, 3, 20).unwrap();
         assert!(!result.is_empty());
     }
 

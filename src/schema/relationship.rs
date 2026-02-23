@@ -81,13 +81,7 @@ mod tests {
         let mut tags = FxHashSet::default();
         tags.insert("secret".to_string());
         tags.insert("deteriorating".to_string());
-        let rel = Relationship::new(
-            EntityId(1),
-            EntityId(2),
-            "lover".to_string(),
-            0.9,
-            tags,
-        );
+        let rel = Relationship::new(EntityId(1), EntityId(2), "lover".to_string(), 0.9, tags);
         assert!(rel.tags.contains("secret"));
         assert!(rel.tags.contains("deteriorating"));
         assert_eq!(rel.tags.len(), 2);

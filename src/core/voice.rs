@@ -1,5 +1,4 @@
 /// Voice system — persona/tone bundles that shape generated text.
-
 use rustc_hash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -157,10 +156,7 @@ impl VoiceRegistry {
             id: voice.id,
             name: voice.name.clone(),
             grammar_weights,
-            vocabulary: VocabularyPool {
-                preferred,
-                avoided,
-            },
+            vocabulary: VocabularyPool { preferred, avoided },
             markov_bindings,
             structure_prefs,
             quirks,

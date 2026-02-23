@@ -10,7 +10,6 @@
 ///   bulk <n>                    — generate n passages with variety stats
 ///   help                        — list commands
 ///   quit                        — exit
-
 use narrative_engine::core::grammar::GrammarSet;
 use narrative_engine::core::markov::MarkovModel;
 use narrative_engine::core::pipeline::{NarrativeEngine, WorldState};
@@ -92,7 +91,12 @@ fn main() {
     let mut current_seed = seed;
 
     // Build engine
-    let mut engine = build_engine(grammars.clone(), voices.clone(), markov_models.clone(), current_seed);
+    let mut engine = build_engine(
+        grammars.clone(),
+        voices.clone(),
+        markov_models.clone(),
+        current_seed,
+    );
 
     let stdin = io::stdin();
     let mut stdout = io::stdout();
@@ -126,7 +130,9 @@ fn main() {
                     println!("Usage: event <fn> <mood> <stakes>");
                     println!("  fn: revelation, escalation, confrontation, betrayal, alliance,");
                     println!("      discovery, loss, comic_relief, foreshadowing, status_change");
-                    println!("  mood: neutral, tense, warm, dread, euphoric, somber, chaotic, intimate");
+                    println!(
+                        "  mood: neutral, tense, warm, dread, euphoric, somber, chaotic, intimate"
+                    );
                     println!("  stakes: trivial, low, medium, high, critical");
                     continue;
                 }
@@ -233,7 +239,10 @@ fn main() {
                     }
                 }
                 if !found {
-                    println!("Voice '{}' not found. Try a voice name from the loaded voice files.", name);
+                    println!(
+                        "Voice '{}' not found. Try a voice name from the loaded voice files.",
+                        name
+                    );
                 }
             }
             "entity" => {
@@ -393,21 +402,23 @@ fn main() {
                 }
 
                 // Print statistics
-                println!("\n=== Bulk Generation: {} passages ({} errors) ===\n", passages.len(), errors);
+                println!(
+                    "\n=== Bulk Generation: {} passages ({} errors) ===\n",
+                    passages.len(),
+                    errors
+                );
 
                 // Unique openings
                 let openings: Vec<String> = passages
                     .iter()
-                    .map(|p| {
-                        p.split('.')
-                            .next()
-                            .unwrap_or("")
-                            .trim()
-                            .to_string()
-                    })
+                    .map(|p| p.split('.').next().unwrap_or("").trim().to_string())
                     .collect();
                 let unique_openings: std::collections::HashSet<&String> = openings.iter().collect();
-                println!("Unique openings: {} / {}", unique_openings.len(), passages.len());
+                println!(
+                    "Unique openings: {} / {}",
+                    unique_openings.len(),
+                    passages.len()
+                );
 
                 // Average length
                 let avg_len: f64 = if passages.is_empty() {
@@ -444,7 +455,10 @@ fn main() {
                 println!();
             }
             _ => {
-                println!("Unknown command: '{}'. Type 'help' for available commands.", cmd);
+                println!(
+                    "Unknown command: '{}'. Type 'help' for available commands.",
+                    cmd
+                );
             }
         }
     }
@@ -521,7 +535,8 @@ fn parse_stakes(s: &str) -> Option<Stakes> {
 }
 
 fn print_expansion_trace(event: &Event) {
-    println!("[Trace] fn={} mood={} stakes={}",
+    println!(
+        "[Trace] fn={} mood={} stakes={}",
         event.narrative_fn.name(),
         event.mood.tag(),
         event.stakes.tag(),

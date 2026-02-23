@@ -1,5 +1,4 @@
 /// Narrative context — anti-repetition tracking and pronoun management.
-
 use std::collections::HashMap;
 
 /// A sliding window of recently generated passages for repetition detection.
@@ -36,13 +35,12 @@ pub enum RepetitionIssue {
 
 /// Stopwords that don't count as "significant" for repetition tracking.
 const STOPWORDS: &[&str] = &[
-    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
-    "of", "with", "by", "from", "is", "it", "as", "was", "are", "be",
-    "been", "had", "has", "have", "that", "this", "not", "her", "his",
-    "she", "he", "they", "them", "their", "its", "into", "than", "then",
-    "were", "will", "would", "could", "should", "did", "does", "do",
-    "all", "each", "every", "both", "few", "more", "most", "other",
-    "some", "such", "only", "own", "same", "so", "just", "very",
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by",
+    "from", "is", "it", "as", "was", "are", "be", "been", "had", "has", "have", "that", "this",
+    "not", "her", "his", "she", "he", "they", "them", "their", "its", "into", "than", "then",
+    "were", "will", "would", "could", "should", "did", "does", "do", "all", "each", "every",
+    "both", "few", "more", "most", "other", "some", "such", "only", "own", "same", "so", "just",
+    "very",
 ];
 
 impl NarrativeContext {
@@ -107,12 +105,12 @@ impl NarrativeContext {
                 .iter()
                 .flat_map(|p| sentence_lengths(p))
                 .collect();
-            lengths.extend(sentence_lengths(candidate).into_iter().map(|l| l as f64));
+            lengths.extend(sentence_lengths(candidate));
 
             if lengths.len() >= 4 {
                 let mean: f64 = lengths.iter().sum::<f64>() / lengths.len() as f64;
-                let variance: f64 = lengths.iter().map(|l| (l - mean).powi(2)).sum::<f64>()
-                    / lengths.len() as f64;
+                let variance: f64 =
+                    lengths.iter().map(|l| (l - mean).powi(2)).sum::<f64>() / lengths.len() as f64;
                 let stddev = variance.sqrt();
 
                 // If standard deviation is very low, sentences are monotonously uniform
@@ -147,14 +145,17 @@ fn extract_opening(text: &str) -> String {
 /// Extract "significant" words: length > 4, not a stopword.
 fn extract_significant_words(text: &str) -> Vec<String> {
     text.split_whitespace()
-        .map(|w| w.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase())
+        .map(|w| {
+            w.trim_matches(|c: char| !c.is_alphanumeric())
+                .to_lowercase()
+        })
         .filter(|w| w.len() > 4 && !STOPWORDS.contains(&w.as_str()))
         .collect()
 }
 
 /// Get sentence lengths (word count per sentence) from text.
 fn sentence_lengths(text: &str) -> Vec<f64> {
-    text.split(|c: char| c == '.' || c == '!' || c == '?')
+    text.split(['.', '!', '?'])
         .map(|s| s.split_whitespace().count() as f64)
         .filter(|&len| len > 0.0)
         .collect()
@@ -187,7 +188,9 @@ mod tests {
         let mut ctx = NarrativeContext::default();
         ctx.record("The evening was quiet and still.");
         let issues = ctx.check_repetition("The evening was loud and chaotic.");
-        assert!(issues.iter().any(|i| matches!(i, RepetitionIssue::RepeatedOpening(_))));
+        assert!(issues
+            .iter()
+            .any(|i| matches!(i, RepetitionIssue::RepeatedOpening(_))));
     }
 
     #[test]
@@ -195,7 +198,9 @@ mod tests {
         let mut ctx = NarrativeContext::default();
         ctx.record("The evening was quiet.");
         let issues = ctx.check_repetition("A silence settled over the room.");
-        assert!(!issues.iter().any(|i| matches!(i, RepetitionIssue::RepeatedOpening(_))));
+        assert!(!issues
+            .iter()
+            .any(|i| matches!(i, RepetitionIssue::RepeatedOpening(_))));
     }
 
     #[test]
@@ -219,7 +224,9 @@ mod tests {
         ctx.record("He turned to the wall.");
         ctx.record("They walked to the car.");
         let issues = ctx.check_repetition("She moved to the room.");
-        assert!(issues.iter().any(|i| matches!(i, RepetitionIssue::StructuralMonotony)));
+        assert!(issues
+            .iter()
+            .any(|i| matches!(i, RepetitionIssue::StructuralMonotony)));
     }
 
     #[test]
@@ -229,7 +236,9 @@ mod tests {
         ctx.record("He turned.");
         ctx.record("They walked to the car and drove away into the night, headlights cutting through the fog.");
         let issues = ctx.check_repetition("Nothing happened.");
-        assert!(!issues.iter().any(|i| matches!(i, RepetitionIssue::StructuralMonotony)));
+        assert!(!issues
+            .iter()
+            .any(|i| matches!(i, RepetitionIssue::StructuralMonotony)));
     }
 
     #[test]

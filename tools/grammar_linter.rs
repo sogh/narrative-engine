@@ -1,7 +1,6 @@
 /// Grammar Linter — validates grammar rule coverage and quality.
 ///
 /// Usage: grammar_linter <grammar_dir> [--models-dir <dir>]
-
 use narrative_engine::core::grammar::GrammarSet;
 use std::collections::HashSet;
 use std::path::Path;

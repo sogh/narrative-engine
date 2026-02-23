@@ -1,7 +1,6 @@
 /// Variety pass — post-processing transforms for text quality.
 ///
 /// Includes synonym rotation, quirk injection, and repetition remediation.
-
 use rand::rngs::StdRng;
 use rand::Rng;
 use std::collections::HashMap;
@@ -79,11 +78,10 @@ fn replace_word_preserving_case(text: &str, target: &str, replacement: &str) -> 
         let abs_pos = search_from + pos;
 
         // Check word boundaries
-        let before_ok = abs_pos == 0
-            || !text.as_bytes()[abs_pos - 1].is_ascii_alphanumeric();
+        let before_ok = abs_pos == 0 || !text.as_bytes()[abs_pos - 1].is_ascii_alphanumeric();
         let after_pos = abs_pos + target_lower.len();
-        let after_ok = after_pos >= text.len()
-            || !text.as_bytes()[after_pos].is_ascii_alphanumeric();
+        let after_ok =
+            after_pos >= text.len() || !text.as_bytes()[after_pos].is_ascii_alphanumeric();
 
         if before_ok && after_ok {
             result.push_str(&text[search_from..abs_pos]);
@@ -109,11 +107,7 @@ fn replace_word_preserving_case(text: &str, target: &str, replacement: &str) -> 
 }
 
 /// Inject voice quirks at natural insertion points.
-fn inject_quirks(
-    text: &str,
-    quirks: &[super::voice::Quirk],
-    rng: &mut StdRng,
-) -> String {
+fn inject_quirks(text: &str, quirks: &[super::voice::Quirk], rng: &mut StdRng) -> String {
     if quirks.is_empty() {
         return text.to_string();
     }
@@ -160,11 +154,7 @@ fn find_insertion_point(text: &str) -> Option<usize> {
 }
 
 /// Apply minimal fixes for detected repetition issues.
-fn remediate_repetition(
-    text: &str,
-    issues: &[RepetitionIssue],
-    rng: &mut StdRng,
-) -> String {
+fn remediate_repetition(text: &str, issues: &[RepetitionIssue], rng: &mut StdRng) -> String {
     let mut result = text.to_string();
     let synonyms = build_synonym_table();
 
@@ -233,11 +223,32 @@ fn is_proper_noun(word: &str) -> bool {
     }
     // Common words that start sentences but aren't proper nouns
     let common_starters = [
-        "The", "A", "An", "This", "That", "These", "Those",
-        "It", "There", "Here", "They", "We", "He", "She",
-        "Every", "Each", "Some", "No", "All", "Any",
-        "Something", "Nothing", "Everything", "Everyone",
-        "Somewhere", "Nowhere",
+        "The",
+        "A",
+        "An",
+        "This",
+        "That",
+        "These",
+        "Those",
+        "It",
+        "There",
+        "Here",
+        "They",
+        "We",
+        "He",
+        "She",
+        "Every",
+        "Each",
+        "Some",
+        "No",
+        "All",
+        "Any",
+        "Something",
+        "Nothing",
+        "Everything",
+        "Everyone",
+        "Somewhere",
+        "Nowhere",
     ];
     !common_starters.contains(&word)
 }
@@ -289,20 +300,47 @@ fn build_synonym_table() -> HashMap<&'static str, Vec<&'static str>> {
         ("small", vec!["tiny", "slight", "modest", "compact"]),
         ("happy", vec!["pleased", "content", "delighted", "glad"]),
         ("angry", vec!["furious", "irate", "incensed", "livid"]),
-        ("beautiful", vec!["lovely", "elegant", "stunning", "striking"]),
+        (
+            "beautiful",
+            vec!["lovely", "elegant", "stunning", "striking"],
+        ),
         ("dark", vec!["dim", "shadowed", "murky", "gloomy"]),
         ("light", vec!["bright", "luminous", "radiant", "glowing"]),
         ("quiet", vec!["silent", "hushed", "still", "muted"]),
-        ("loud", vec!["thunderous", "booming", "deafening", "piercing"]),
+        (
+            "loud",
+            vec!["thunderous", "booming", "deafening", "piercing"],
+        ),
         ("quickly", vec!["swiftly", "rapidly", "hastily", "briskly"]),
-        ("slowly", vec!["gradually", "leisurely", "unhurriedly", "deliberately"]),
-        ("very", vec!["quite", "remarkably", "exceedingly", "particularly"]),
-        ("really", vec!["truly", "genuinely", "undeniably", "certainly"]),
-        ("nice", vec!["pleasant", "agreeable", "charming", "delightful"]),
+        (
+            "slowly",
+            vec!["gradually", "leisurely", "unhurriedly", "deliberately"],
+        ),
+        (
+            "very",
+            vec!["quite", "remarkably", "exceedingly", "particularly"],
+        ),
+        (
+            "really",
+            vec!["truly", "genuinely", "undeniably", "certainly"],
+        ),
+        (
+            "nice",
+            vec!["pleasant", "agreeable", "charming", "delightful"],
+        ),
         ("thing", vec!["matter", "object", "affair", "detail"]),
-        ("stuff", vec!["material", "substance", "belongings", "items"]),
-        ("great", vec!["magnificent", "remarkable", "exceptional", "splendid"]),
-        ("terrible", vec!["dreadful", "awful", "ghastly", "horrendous"]),
+        (
+            "stuff",
+            vec!["material", "substance", "belongings", "items"],
+        ),
+        (
+            "great",
+            vec!["magnificent", "remarkable", "exceptional", "splendid"],
+        ),
+        (
+            "terrible",
+            vec!["dreadful", "awful", "ghastly", "horrendous"],
+        ),
         ("strange", vec!["peculiar", "unusual", "curious", "odd"]),
         ("old", vec!["ancient", "aged", "weathered", "venerable"]),
         ("young", vec!["youthful", "fresh", "juvenile", "new"]),
@@ -311,24 +349,63 @@ fn build_synonym_table() -> HashMap<&'static str, Vec<&'static str>> {
         ("fast", vec!["swift", "rapid", "fleet", "speedy"]),
         ("strong", vec!["powerful", "mighty", "robust", "formidable"]),
         ("weak", vec!["feeble", "frail", "fragile", "delicate"]),
-        ("thought", vec!["considered", "reflected", "pondered", "mused"]),
-        ("suddenly", vec!["abruptly", "unexpectedly", "without warning", "all at once"]),
-        ("began", vec!["started", "commenced", "initiated", "set about"]),
-        ("seemed", vec!["appeared", "looked", "gave the impression", "struck one as"]),
+        (
+            "thought",
+            vec!["considered", "reflected", "pondered", "mused"],
+        ),
+        (
+            "suddenly",
+            vec!["abruptly", "unexpectedly", "without warning", "all at once"],
+        ),
+        (
+            "began",
+            vec!["started", "commenced", "initiated", "set about"],
+        ),
+        (
+            "seemed",
+            vec!["appeared", "looked", "gave the impression", "struck one as"],
+        ),
         ("turned", vec!["pivoted", "swiveled", "shifted", "rotated"]),
         ("stood", vec!["remained", "lingered", "waited", "stayed"]),
-        ("found", vec!["discovered", "located", "uncovered", "encountered"]),
+        (
+            "found",
+            vec!["discovered", "located", "uncovered", "encountered"],
+        ),
         ("heard", vec!["caught", "detected", "perceived", "noticed"]),
-        ("knew", vec!["understood", "realized", "recognized", "grasped"]),
-        ("felt", vec!["sensed", "experienced", "detected", "perceived"]),
+        (
+            "knew",
+            vec!["understood", "realized", "recognized", "grasped"],
+        ),
+        (
+            "felt",
+            vec!["sensed", "experienced", "detected", "perceived"],
+        ),
         ("wanted", vec!["desired", "wished", "longed for", "craved"]),
-        ("tried", vec!["attempted", "endeavored", "sought to", "strove to"]),
-        ("started", vec!["began", "commenced", "initiated", "launched"]),
-        ("important", vec!["crucial", "vital", "essential", "significant"]),
-        ("interesting", vec!["fascinating", "intriguing", "compelling", "engaging"]),
-        ("different", vec!["distinct", "varied", "divergent", "unlike"]),
+        (
+            "tried",
+            vec!["attempted", "endeavored", "sought to", "strove to"],
+        ),
+        (
+            "started",
+            vec!["began", "commenced", "initiated", "launched"],
+        ),
+        (
+            "important",
+            vec!["crucial", "vital", "essential", "significant"],
+        ),
+        (
+            "interesting",
+            vec!["fascinating", "intriguing", "compelling", "engaging"],
+        ),
+        (
+            "different",
+            vec!["distinct", "varied", "divergent", "unlike"],
+        ),
         ("obvious", vec!["apparent", "evident", "clear", "plain"]),
-        ("getting", vec!["becoming", "growing", "turning", "developing"]),
+        (
+            "getting",
+            vec!["becoming", "growing", "turning", "developing"],
+        ),
     ])
 }
 
@@ -459,7 +536,9 @@ mod tests {
 
         let result = remediate_repetition(
             "The evening was loud.",
-            &[RepetitionIssue::RepeatedOpening("the evening was".to_string())],
+            &[RepetitionIssue::RepeatedOpening(
+                "the evening was".to_string(),
+            )],
             &mut rng,
         );
         // Opening should have changed
@@ -474,6 +553,10 @@ mod tests {
             &mut rng,
         );
         // Should have split at "and"
-        assert!(result.contains(". "), "Expected sentence split, got: {}", result);
+        assert!(
+            result.contains(". "),
+            "Expected sentence split, got: {}",
+            result
+        );
     }
 }

@@ -1,5 +1,4 @@
 /// Stochastic grammar runtime — types, parsing, loading, and expansion.
-
 use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use rand::rngs::StdRng;
@@ -45,6 +44,12 @@ pub struct SelectionContext<'a> {
     pub voice_weights: Option<&'a HashMap<String, f32>>,
     /// Loaded Markov models keyed by corpus_id.
     pub markov_models: HashMap<String, &'a MarkovModel>,
+}
+
+impl<'a> Default for SelectionContext<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<'a> SelectionContext<'a> {
@@ -147,16 +152,12 @@ impl Template {
                 }
 
                 if depth != 0 {
-                    return Err(GrammarError::TemplateParse(
-                        "unclosed brace".to_string(),
-                    ));
+                    return Err(GrammarError::TemplateParse("unclosed brace".to_string()));
                 }
 
                 let content: String = chars[start..end].iter().collect();
                 if content.is_empty() {
-                    return Err(GrammarError::TemplateParse(
-                        "empty braces".to_string(),
-                    ));
+                    return Err(GrammarError::TemplateParse("empty braces".to_string()));
                 }
 
                 segments.push(Self::parse_segment(&content)?);
@@ -493,9 +494,10 @@ mod tests {
             tags: FxHashSet::default(),
             relationships: Vec::new(),
             voice_id: Some(VoiceId(1)),
-            properties: HashMap::from([
-                ("held_item".to_string(), Value::String("wine glass".to_string())),
-            ]),
+            properties: HashMap::from([(
+                "held_item".to_string(),
+                Value::String("wine glass".to_string()),
+            )]),
         }
     }
 
@@ -601,14 +603,23 @@ mod tests {
 
     #[test]
     fn parse_mixed_segments() {
-        let t =
-            Template::parse("{subject} set down {possessive} {entity.held_item} and said {markov:dialogue:tense}.")
-                .unwrap();
+        let t = Template::parse(
+            "{subject} set down {possessive} {entity.held_item} and said {markov:dialogue:tense}.",
+        )
+        .unwrap();
         assert_eq!(t.segments.len(), 8);
-        assert!(matches!(&t.segments[0], TemplateSegment::PronounRef { role } if role == "subject"));
-        assert!(matches!(&t.segments[2], TemplateSegment::PronounRef { role } if role == "possessive"));
-        assert!(matches!(&t.segments[4], TemplateSegment::EntityField { field } if field == "held_item"));
-        assert!(matches!(&t.segments[6], TemplateSegment::MarkovRef { corpus, tag } if corpus == "dialogue" && tag == "tense"));
+        assert!(
+            matches!(&t.segments[0], TemplateSegment::PronounRef { role } if role == "subject")
+        );
+        assert!(
+            matches!(&t.segments[2], TemplateSegment::PronounRef { role } if role == "possessive")
+        );
+        assert!(
+            matches!(&t.segments[4], TemplateSegment::EntityField { field } if field == "held_item")
+        );
+        assert!(
+            matches!(&t.segments[6], TemplateSegment::MarkovRef { corpus, tag } if corpus == "dialogue" && tag == "tense")
+        );
     }
 
     #[test]
@@ -754,7 +765,9 @@ mod tests {
         let mut rng = StdRng::seed_from_u64(42);
 
         // confrontation_opening references action_detail and tense_observation
-        let result = gs.expand("confrontation_opening", &mut ctx, &mut rng).unwrap();
+        let result = gs
+            .expand("confrontation_opening", &mut ctx, &mut rng)
+            .unwrap();
         assert!(!result.is_empty());
         // Should contain text from child rules
         assert!(
@@ -773,13 +786,17 @@ mod tests {
             .with_tags(["mood:tense".to_string()])
             .with_entity("subject", &entity);
         let mut rng1 = StdRng::seed_from_u64(99);
-        let result1 = gs.expand("confrontation_opening", &mut ctx1, &mut rng1).unwrap();
+        let result1 = gs
+            .expand("confrontation_opening", &mut ctx1, &mut rng1)
+            .unwrap();
 
         let mut ctx2 = SelectionContext::new()
             .with_tags(["mood:tense".to_string()])
             .with_entity("subject", &entity);
         let mut rng2 = StdRng::seed_from_u64(99);
-        let result2 = gs.expand("confrontation_opening", &mut ctx2, &mut rng2).unwrap();
+        let result2 = gs
+            .expand("confrontation_opening", &mut ctx2, &mut rng2)
+            .unwrap();
 
         assert_eq!(result1, result2);
     }
@@ -793,7 +810,9 @@ mod tests {
             .with_tags(["mood:tense".to_string()])
             .with_entity("subject", &entity);
         let mut rng1 = StdRng::seed_from_u64(1);
-        let result1 = gs.expand("confrontation_opening", &mut ctx1, &mut rng1).unwrap();
+        let result1 = gs
+            .expand("confrontation_opening", &mut ctx1, &mut rng1)
+            .unwrap();
 
         let mut found_different = false;
         for seed in 2..50 {
@@ -801,13 +820,18 @@ mod tests {
                 .with_tags(["mood:tense".to_string()])
                 .with_entity("subject", &entity);
             let mut rng2 = StdRng::seed_from_u64(seed);
-            let result2 = gs.expand("confrontation_opening", &mut ctx2, &mut rng2).unwrap();
+            let result2 = gs
+                .expand("confrontation_opening", &mut ctx2, &mut rng2)
+                .unwrap();
             if result1 != result2 {
                 found_different = true;
                 break;
             }
         }
-        assert!(found_different, "Expected different output with different seeds");
+        assert!(
+            found_different,
+            "Expected different output with different seeds"
+        );
     }
 
     #[test]
@@ -832,15 +856,27 @@ mod tests {
         let ctx = SelectionContext::new();
         let matching = gs.find_matching_rules(&ctx);
         let names: Vec<&str> = matching.iter().map(|r| r.name.as_str()).collect();
-        assert!(names.contains(&"calm_greeting"), "calm_greeting should match without tense tag");
-        assert!(!names.contains(&"tense_observation"), "tense_observation should not match without tense tag");
+        assert!(
+            names.contains(&"calm_greeting"),
+            "calm_greeting should match without tense tag"
+        );
+        assert!(
+            !names.contains(&"tense_observation"),
+            "tense_observation should not match without tense tag"
+        );
 
         // With mood:tense, tense_observation should match but calm_greeting should not
         let ctx_tense = SelectionContext::new().with_tags(["mood:tense".to_string()]);
         let matching_tense = gs.find_matching_rules(&ctx_tense);
         let names_tense: Vec<&str> = matching_tense.iter().map(|r| r.name.as_str()).collect();
-        assert!(names_tense.contains(&"tense_observation"), "tense_observation should match with tense tag");
-        assert!(!names_tense.contains(&"calm_greeting"), "calm_greeting should be excluded by tense tag");
+        assert!(
+            names_tense.contains(&"tense_observation"),
+            "tense_observation should match with tense tag"
+        );
+        assert!(
+            !names_tense.contains(&"calm_greeting"),
+            "calm_greeting should be excluded by tense tag"
+        );
     }
 
     #[test]
@@ -860,7 +896,10 @@ mod tests {
                 break;
             }
         }
-        assert!(found_name, "Expected entity name expansion in at least one seed");
+        assert!(
+            found_name,
+            "Expected entity name expansion in at least one seed"
+        );
     }
 
     #[test]
