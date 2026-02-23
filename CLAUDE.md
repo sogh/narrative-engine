@@ -131,6 +131,8 @@ Grammar files use RON (Rusty Object Notation). Key conventions:
 - `{markov:corpus_id:tag}` delegates to Markov generator
 - `{entity.name}`, `{entity.property_key}` interpolates entity data
 - `{subject}`, `{object}`, `{possessive}` are pronoun-aware entity refs
+- `{possessive_standalone}` expands to the independent possessive ("hers", "his", "theirs", "its")
+- `{reflexive}` expands to the reflexive pronoun ("herself", "himself", "themselves", "itself")
 
 ## Common Tasks
 

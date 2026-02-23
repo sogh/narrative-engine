@@ -37,7 +37,8 @@ pub enum RepetitionIssue {
 const STOPWORDS: &[&str] = &[
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by",
     "from", "is", "it", "as", "was", "are", "be", "been", "had", "has", "have", "that", "this",
-    "not", "her", "his", "she", "he", "they", "them", "their", "its", "into", "than", "then",
+    "not", "her", "hers", "him", "his", "she", "he", "they", "them", "their", "theirs", "its",
+    "herself", "himself", "themselves", "itself", "into", "than", "then",
     "were", "will", "would", "could", "should", "did", "does", "do", "all", "each", "every",
     "both", "few", "more", "most", "other", "some", "such", "only", "own", "same", "so", "just",
     "very",

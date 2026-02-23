@@ -90,7 +90,8 @@ pub enum TemplateSegment {
     MarkovRef { corpus: String, tag: String },
     /// Entity field interpolation: `{entity.field}`.
     EntityField { field: String },
-    /// Pronoun-aware entity reference: `{subject}`, `{object}`, `{possessive}`.
+    /// Pronoun-aware entity reference: `{subject}`, `{object}`, `{possessive}`,
+    /// `{possessive_standalone}`, `{reflexive}`.
     PronounRef { role: String },
 }
 
@@ -188,7 +189,7 @@ impl Template {
     fn parse_segment(content: &str) -> Result<TemplateSegment, GrammarError> {
         // Check for pronoun refs
         match content {
-            "subject" | "object" | "possessive" => {
+            "subject" | "object" | "possessive" | "possessive_standalone" | "reflexive" => {
                 return Ok(TemplateSegment::PronounRef {
                     role: content.to_string(),
                 });
@@ -457,13 +458,15 @@ fn resolve_entity_field(ctx: &SelectionContext<'_>, field: &str) -> Result<Strin
 ///
 /// - `{subject}` → entity name (templates expect the name here)
 /// - `{object}` → entity name for the "object" role
-/// - `{possessive}` → possessive pronoun (her, his, their, its)
+/// - `{possessive}` → possessive determiner (her, his, their, its)
+/// - `{possessive_standalone}` → independent possessive (hers, his, theirs, its)
+/// - `{reflexive}` → reflexive pronoun (herself, himself, themselves, itself)
 fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, GrammarError> {
     // Map pronoun role to entity binding
     let binding_key = match role {
         "subject" => "subject",
         "object" => "object",
-        "possessive" => "subject",
+        "possessive" | "possessive_standalone" | "reflexive" => "subject",
         other => other,
     };
 
@@ -476,6 +479,8 @@ fn resolve_pronoun(ctx: &SelectionContext<'_>, role: &str) -> Result<String, Gra
 
     match role {
         "possessive" => Ok(entity.pronouns.possessive().to_string()),
+        "possessive_standalone" => Ok(entity.pronouns.possessive_standalone().to_string()),
+        "reflexive" => Ok(entity.pronouns.reflexive().to_string()),
         _ => Ok(entity.name.clone()),
     }
 }
@@ -625,7 +630,7 @@ mod tests {
     #[test]
     fn load_test_grammar_from_ron() {
         let gs = load_test_grammar();
-        assert_eq!(gs.rules.len(), 7);
+        assert_eq!(gs.rules.len(), 8);
         assert!(gs.rules.contains_key("greeting"));
         assert!(gs.rules.contains_key("tense_observation"));
         assert!(gs.rules.contains_key("action_detail"));
@@ -633,6 +638,7 @@ mod tests {
         assert!(gs.rules.contains_key("calm_greeting"));
         assert!(gs.rules.contains_key("recursive_bomb"));
         assert!(gs.rules.contains_key("markov_test"));
+        assert!(gs.rules.contains_key("possession_claim"));
 
         let greeting = &gs.rules["greeting"];
         assert_eq!(greeting.alternatives.len(), 3);
@@ -924,5 +930,73 @@ mod tests {
 
         let result = gs.expand("nonexistent_rule", &mut ctx, &mut rng);
         assert!(matches!(result, Err(GrammarError::RuleNotFound(_))));
+    }
+
+    #[test]
+    fn parse_possessive_standalone_and_reflexive() {
+        let t = Template::parse("The seat is {possessive_standalone}. {subject} claimed it for {reflexive}.").unwrap();
+        assert_eq!(
+            t.segments[1],
+            TemplateSegment::PronounRef {
+                role: "possessive_standalone".to_string()
+            }
+        );
+        assert_eq!(
+            t.segments[5],
+            TemplateSegment::PronounRef {
+                role: "reflexive".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn resolve_possessive_standalone_she_her() {
+        let gs = load_test_grammar();
+        let entity = make_test_entity("Margaret"); // SheHer pronouns
+        let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs.expand("possession_claim", &mut ctx, &mut rng).unwrap();
+        // SheHer → possessive_standalone = "hers", reflexive = "herself"
+        assert!(
+            !result.contains("theirs") && !result.contains("himself"),
+            "Expected she/her pronouns, got: {}",
+            result
+        );
+        let has_hers = result.contains("hers");
+        let has_herself = result.contains("herself");
+        assert!(
+            has_hers || has_herself,
+            "Expected 'hers' or 'herself' in output, got: {}",
+            result
+        );
+    }
+
+    #[test]
+    fn resolve_possessive_standalone_they_them() {
+        use crate::schema::entity::Pronouns;
+
+        let gs = load_test_grammar();
+        let entity = Entity {
+            id: EntityId(2),
+            name: "Alex".to_string(),
+            pronouns: Pronouns::TheyThem,
+            tags: FxHashSet::default(),
+            relationships: Vec::new(),
+            voice_id: None,
+            properties: HashMap::new(),
+        };
+        let mut ctx = SelectionContext::new().with_entity("subject", &entity);
+        let mut rng = StdRng::seed_from_u64(42);
+
+        let result = gs.expand("possession_claim", &mut ctx, &mut rng).unwrap();
+        // TheyThem → possessive_standalone = "theirs", reflexive = "themselves"
+        let has_theirs = result.contains("theirs");
+        let has_themselves = result.contains("themselves");
+        assert!(
+            has_theirs || has_themselves,
+            "Expected 'theirs' or 'themselves' in output, got: {}",
+            result
+        );
     }
 }

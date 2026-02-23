@@ -55,4 +55,13 @@
             (weight: 1, text: "She said {markov:dialogue:accusatory} quietly."),
         ],
     ),
+    "possession_claim": Rule(
+        requires: [],
+        excludes: [],
+        alternatives: [
+            (weight: 2, text: "\"That one is {possessive_standalone},\" {subject} insisted."),
+            (weight: 2, text: "{subject} kept it for {reflexive}."),
+            (weight: 1, text: "{subject} claimed the seat was {possessive_standalone} and settled into it {reflexive}."),
+        ],
+    ),
 }
