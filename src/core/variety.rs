@@ -206,13 +206,40 @@ fn swap_opening(text: &str, rng: &mut StdRng) -> String {
     let words: Vec<&str> = text.splitn(4, ' ').collect();
     if words.len() >= 3 {
         let opener = openers[rng.gen_range(0..openers.len())];
-        // Lowercase the first word of the original
-        let first_lower = words[0].to_lowercase();
-        let rest = &text[words[0].len()..];
-        format!("{}{}{}", opener, first_lower, rest)
+        let first_word = words[0];
+        // Only lowercase common words (articles, pronouns, etc.)
+        // Keep proper nouns (names) capitalized
+        let adjusted = if is_proper_noun(first_word) {
+            first_word.to_string()
+        } else {
+            first_word[..1].to_lowercase() + &first_word[1..]
+        };
+        let rest = &text[first_word.len()..];
+        format!("{}{}{}", opener, adjusted, rest)
     } else {
         text.to_string()
     }
+}
+
+/// Heuristic: a word is likely a proper noun if it starts uppercase
+/// and is NOT a common sentence-starting word.
+fn is_proper_noun(word: &str) -> bool {
+    let first = match word.chars().next() {
+        Some(c) => c,
+        None => return false,
+    };
+    if !first.is_uppercase() {
+        return false;
+    }
+    // Common words that start sentences but aren't proper nouns
+    let common_starters = [
+        "The", "A", "An", "This", "That", "These", "Those",
+        "It", "There", "Here", "They", "We", "He", "She",
+        "Every", "Each", "Some", "No", "All", "Any",
+        "Something", "Nothing", "Everything", "Everyone",
+        "Somewhere", "Nowhere",
+    ];
+    !common_starters.contains(&word)
 }
 
 /// Vary sentence structure to break monotony.
