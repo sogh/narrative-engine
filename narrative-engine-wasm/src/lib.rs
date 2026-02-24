@@ -17,10 +17,8 @@ use narrative_engine::schema::narrative_fn::NarrativeFunction;
 mod data {
     pub const SOCIAL_DRAMA_GRAMMAR: &str =
         include_str!("../../genre_data/social_drama/grammar.ron");
-    pub const SOCIAL_DRAMA_VOICES: &str =
-        include_str!("../../genre_data/social_drama/voices.ron");
-    pub const SOCIAL_DRAMA_CORPUS: &str =
-        include_str!("../../genre_data/social_drama/corpus.txt");
+    pub const SOCIAL_DRAMA_VOICES: &str = include_str!("../../genre_data/social_drama/voices.ron");
+    pub const SOCIAL_DRAMA_CORPUS: &str = include_str!("../../genre_data/social_drama/corpus.txt");
 
     pub const SURVIVAL_THRILLER_GRAMMAR: &str =
         include_str!("../../genre_data/survival_thriller/grammar.ron");
@@ -327,11 +325,7 @@ impl NarrativeDemo {
     }
 
     /// Generate multiple variants for the same event. Returns a JSON array of strings.
-    pub fn narrate_variants(
-        &mut self,
-        event_json: &str,
-        count: usize,
-    ) -> Result<String, JsError> {
+    pub fn narrate_variants(&mut self, event_json: &str, count: usize) -> Result<String, JsError> {
         let input: EventInput = serde_json::from_str(event_json)
             .map_err(|e| JsError::new(&format!("Invalid event JSON: {e}")))?;
         let event = self.build_event(&input);
@@ -364,8 +358,7 @@ impl NarrativeDemo {
             genre: self.genre.clone(),
             entities,
         };
-        serde_json::to_string(&info)
-            .map_err(|e| JsError::new(&format!("Serialization error: {e}")))
+        serde_json::to_string(&info).map_err(|e| JsError::new(&format!("Serialization error: {e}")))
     }
 
     /// Return JSON array of available genre identifiers.
