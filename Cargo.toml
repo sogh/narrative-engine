@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "narrative-engine-wasm"]
+
 [package]
 name = "narrative-engine"
 version = "0.1.0"

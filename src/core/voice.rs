@@ -163,14 +163,19 @@ impl VoiceRegistry {
         })
     }
 
-    /// Load voices from a RON file. The file should contain a list of Voice definitions.
-    pub fn load_from_ron(&mut self, path: &std::path::Path) -> Result<(), VoiceError> {
-        let contents = std::fs::read_to_string(path)?;
-        let voices: Vec<Voice> = ron::from_str(&contents)?;
+    /// Parse voices from a RON string. The string should contain a list of Voice definitions.
+    pub fn parse_from_ron(&mut self, input: &str) -> Result<(), VoiceError> {
+        let voices: Vec<Voice> = ron::from_str(input)?;
         for voice in voices {
             self.register(voice);
         }
         Ok(())
+    }
+
+    /// Load voices from a RON file. The file should contain a list of Voice definitions.
+    pub fn load_from_ron(&mut self, path: &std::path::Path) -> Result<(), VoiceError> {
+        let contents = std::fs::read_to_string(path)?;
+        self.parse_from_ron(&contents)
     }
 }
 

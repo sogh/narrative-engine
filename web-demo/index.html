@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Narrative Engine — Interactive Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Narrative Engine</h1>
+        <p class="subtitle">Procedural text generation for games — no neural networks required</p>
+    </header>
+
+    <main>
+        <!-- Genre & Seed controls -->
+        <section class="controls-bar">
+            <div class="control-group">
+                <label for="genre-select">Genre</label>
+                <select id="genre-select"></select>
+            </div>
+            <div class="control-group">
+                <label for="seed-input">Seed</label>
+                <input id="seed-input" type="number" value="2026" min="0" max="999999999">
+            </div>
+            <button id="reset-btn" class="btn btn-secondary">Reset Engine</button>
+        </section>
+
+        <!-- Entity cards -->
+        <section id="entities-section">
+            <h2>Scenario Characters</h2>
+            <div id="entity-cards" class="card-grid"></div>
+        </section>
+
+        <!-- Event configuration -->
+        <section class="event-config">
+            <h2>Configure Event</h2>
+            <div class="config-grid">
+                <div class="control-group">
+                    <label for="subject-select">Subject</label>
+                    <select id="subject-select"></select>
+                </div>
+                <div class="control-group">
+                    <label for="object-select">Object</label>
+                    <select id="object-select">
+                        <option value="">(none)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="mood-select">Mood</label>
+                    <select id="mood-select"></select>
+                </div>
+                <div class="control-group">
+                    <label for="stakes-select">Stakes</label>
+                    <select id="stakes-select"></select>
+                </div>
+                <div class="control-group">
+                    <label for="fn-select">Narrative Function</label>
+                    <select id="fn-select"></select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actions -->
+        <section class="actions">
+            <button id="generate-btn" class="btn btn-primary">Generate</button>
+            <button id="variants-btn" class="btn btn-secondary">Generate 3 Variants</button>
+            <button id="determinism-btn" class="btn btn-secondary">Prove Determinism</button>
+        </section>
+
+        <!-- Output -->
+        <section id="output-section" class="output-section hidden">
+            <h2>Generated Text</h2>
+            <div id="output-area"></div>
+        </section>
+
+        <!-- Loading indicator -->
+        <div id="loading" class="loading hidden">Loading WASM module...</div>
+    </main>
+
+    <footer>
+        <p>Powered by <strong>narrative-engine</strong> compiled to WebAssembly.
+        Source on <a href="https://github.com/sogh/narrative-engine">GitHub</a>.</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
